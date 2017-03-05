@@ -1,11 +1,15 @@
 # GNU GPL blah blah blah (C) Akshaal, 2017 blah blah blah
 
-TARGET			= akstm32le
-PREFIX			= arm-none-eabi
-MCPU			= cortex-m3
-CUBEFILE_REL	= misc/stm32cubef1.zip # File downloaded from st.com site
+TARGET				= akstm32le
+PREFIX				= arm-none-eabi
+MCPU				= cortex-m3
+CUBEFILE_REL		= misc/stm32cubef1.zip # File downloaded from st.com site
+STM32_TARGET_DEF  	= STM32F103xB
 
-SRCS		= main.c
+SRCS			= main.c
+
+CMSIS_BASE		= Drivers/CMSIS/Device/ST/STM32F1xx
+HAL_BASE		= Drivers/STM32F1xx_HAL_Driver
 
 # Compiler flags
 CFLAGS  = -Wall # All warnings
@@ -23,6 +27,9 @@ CFLAGS += -fwhole-program # Enable whole program optimization
 CFLAGS += -ffunction-sections # Place each function into its own section
 CFLAGS += -fdata-sections # Place data into its own section
 CFLAGS += -fshort-enums # Allocate to an enum type only as many bytes as it needs for the declared range of possible values.
+CFLAGS += -Isrc-3rd # Include 3rd party sources
+CFLAGS += -Isrc # ... sources
+CFLAGS += -D${STM32_TARGET_DEF} # Define target that's needed by stm32f1xx.h
 
 # Linked flags
 LDFLAGS  = -Wl,--gc-sections # Remove unused sections (e.g. remove unused data and functions)
@@ -67,14 +74,24 @@ tmp/%.o : src/%.c | dirs
 
 .PHONY: all clean dirs
 
-dirs: cube
+dirs: cube src-3rd
 
 cube: | ${CUBEFILE_REL}
 	cd tmp && unzip ../${CUBEFILE_REL}
 	mv tmp/STM32Cube* cube
 	chmod 755 cube
 
+src-3rd: cube
+	mkdir src-3rd src-3rd/Legacy
+	cp cube/${CMSIS_BASE}/Include/*.h src-3rd/
+	cp cube/${HAL_BASE}/Inc/*.h src-3rd/
+	cp cube/${HAL_BASE}/Inc/Legacy/*.h src-3rd/Legacy/
+	cp cube/Drivers/CMSIS/Include/* src-3rd/
+	cp cube/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/* src-3rd/
+	cp cube/Middlewares/Third_Party/FreeRTOS/Source/include/* src-3rd/
+	cp cube//Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3/* src-3rd/
+
 clean:
 	rm -f tmp/*.o tmp/*.map tmp/*.elf tmp/*.lst bin/*.bin tmp/*.d tmp/*.map tmp/*.i tmp/*.s tmp/*.res tmp/*.zip
 	rm -rf tmp/STM32*
-	rm -rf cube
+	rm -rf cube src-3rd
