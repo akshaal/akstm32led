@@ -1,3 +1,5 @@
+# GNU GPL blah blah blah (C) Akshaal, 2017 blah blah blah
+
 TARGET		= akstm32le
 PREFIX		= arm-none-eabi
 MCPU		= cortex-m3
@@ -6,18 +8,26 @@ SRCS		= main.c
 
 # Compiler flags
 CFLAGS  = -Wall # All warnings
+CFLAGS += -save-temps=obj # Save temporary files (assembler etc) based on obj file location
 CFLAGS += -g # Enable debug symbols in elf file
 CFLAGS += -std=gnu11 # Use GNU C 2011
-CFLAGS += -Os # Optimize for speed
+CFLAGS += -O4 # Optimize for speed
 CFLAGS += -mcpu=${MCPU}
 CFLAGS += -mthumb # Generate either Thumb-1 (16bit) or Thumb-2 (32bit) instructions
-CFLAGS += -ffunction-sections
-CFLAGS += -fdata-sections
+CFLAGS += -funroll-loops # Unroll loops
+CFLAGS += -fno-strict-aliasing # Makes more optimization possible
+CFLAGS += -ffreestanding # Assert that compilation targets a freestanding environment.
+CFLAGS += -flto # Enable link time optimization
+CFLAGS += -fwhole-program # Enable whole program optimization
+CFLAGS += -ffunction-sections # Place each function into its own section
+CFLAGS += -fdata-sections # Place data into its own section
+CFLAGS += -fshort-enums # Allocate to an enum type only as many bytes as it needs for the declared range of possible values.
 
 # Linked flags
-LDFLAGS  = -Wl,--gc-sections
-LDFLAGS += -Wl,-Map=tmp/$(TARGET).map
-LDFLAGS += -lc
+LDFLAGS  = -Wl,--gc-sections # Remove unused sections (e.g. remove unused data and functions)
+LDFLAGS += -Wl,--relax # Perform optimizations in linker
+LDFLAGS += -Wl,-Map=tmp/$(TARGET).map # Write map file
+LDFLAGS += -lc # Use standard C file
 
 # Applications
 AR			= $(PREFIX)-ar
@@ -50,4 +60,4 @@ tmp/%.o : src/%.c
 .PHONY: all clean
 
 clean:
-	rm -f tmp/*.o tmp/*.map tmp/*.elf tmp/*.lst bin/*.bin tmp/*.d
+	rm -f tmp/*.o tmp/*.map tmp/*.elf tmp/*.lst bin/*.bin tmp/*.d tmp/*.map
