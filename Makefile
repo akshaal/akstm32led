@@ -36,8 +36,6 @@ CFLAGS += -fno-strict-aliasing # Makes more optimization possible
 CFLAGS += -ffreestanding # Assert that compilation targets a freestanding environment.
 CFLAGS += -flto # Enable link time optimization
 CFLAGS += -fwhole-program # Enable whole program optimization
-CFLAGS += -ffunction-sections # Place each function into its own section
-CFLAGS += -fdata-sections # Place data into its own section
 CFLAGS += -fshort-enums # Allocate to an enum type only as many bytes as it needs for the declared range of possible values.
 CFLAGS += --specs=nosys.specs # no complain about _exit and stuff
 CFLAGS += -Isrc-3rd # Include 3rd party sources
