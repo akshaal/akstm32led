@@ -1,8 +1,9 @@
 # GNU GPL blah blah blah (C) Akshaal, 2017 blah blah blah
 
-TARGET		= akstm32le
-PREFIX		= arm-none-eabi
-MCPU		= cortex-m3
+TARGET			= akstm32le
+PREFIX			= arm-none-eabi
+MCPU			= cortex-m3
+CUBEFILE_REL	= misc/stm32cubef1.zip # File downloaded from st.com site
 
 SRCS		= main.c
 
@@ -42,6 +43,13 @@ SIZE		= $(PREFIX)-size
 OBJS		= $(addprefix tmp/,$(SRCS:.c=.o))
 DEPS		= $(addprefix tmp/,$(SRCS:.c=.d))
 
+###################################################################################################
+
+# Some useful info about makefile syntax:
+#    targets : normal-prerequisites | order-only-prerequisites
+
+###################################################################################################
+
 # First rule is the default one
 all: bin/$(TARGET).bin
 
@@ -54,10 +62,19 @@ bin/$(TARGET).bin: $(OBJS)
 	$(SIZE) tmp/$(TARGET).elf
 	$(OBJCOPY) -O binary tmp/$(TARGET).elf bin/$(TARGET).bin
 
-tmp/%.o : src/%.c
+tmp/%.o : src/%.c | dirs
 	$(CC) $(CFLAGS) -c -o $@ $< -MMD -MF tmp/$(*F).d
 
-.PHONY: all clean
+.PHONY: all clean dirs
+
+dirs: cube
+
+cube: | ${CUBEFILE_REL}
+	cd tmp && unzip ../${CUBEFILE_REL}
+	mv tmp/STM32Cube* cube
+	chmod 755 cube
 
 clean:
-	rm -f tmp/*.o tmp/*.map tmp/*.elf tmp/*.lst bin/*.bin tmp/*.d tmp/*.map tmp/*.i tmp/*.s tmp/*.res
+	rm -f tmp/*.o tmp/*.map tmp/*.elf tmp/*.lst bin/*.bin tmp/*.d tmp/*.map tmp/*.i tmp/*.s tmp/*.res tmp/*.zip
+	rm -rf tmp/STM32*
+	rm -rf cube
