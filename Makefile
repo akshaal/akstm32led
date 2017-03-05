@@ -29,7 +29,7 @@ CFLAGS += -g # Enable debug symbols in elf file
 CFLAGS += -std=gnu11 # Use GNU C 2011
 #CFLAGS += -O4 # Optimize for speed
 CFLAGS += -Os # Optimize for size
-# CFLAGS += -funroll-loops # Unroll loops
+#CFLAGS += -funroll-loops # Unroll loops
 CFLAGS += -mcpu=${MCPU}
 CFLAGS += -mthumb # Generate either Thumb-1 (16bit) or Thumb-2 (32bit) instructions
 CFLAGS += -fno-strict-aliasing # Makes more optimization possible
@@ -85,7 +85,7 @@ ${SRCS_3RD_WP}: dirs
 -include $(DEPS)
 
 bin/$(TARGET).bin: $(OBJS) | dirs
-	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o tmp/$(TARGET).elf
+	$(CC) $(CFLAGS) $(LDFLAGS) src-3rd/${STARTUP_S} $^ -o tmp/$(TARGET).elf
 	$(OBJDUMP) -St tmp/$(TARGET).elf >tmp/$(TARGET).lst
 	$(SIZE) tmp/$(TARGET).elf
 	$(OBJCOPY) -O binary tmp/$(TARGET).elf bin/$(TARGET).bin
@@ -118,6 +118,8 @@ src-3rd: cube
 	cp cube//Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/${FREE_RTOS_PORT}/* src-3rd/
 	cp cube//Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/${FREE_RTOS_HEAP}.c src-3rd/
 	cp cube//Middlewares/Third_Party/FreeRTOS/Source/*.c src-3rd/
+	dos2unix src-3rd/task.h # We are going to patch it...
+	patch -p1 < src-3rd.patch
 
 clean:
 	rm -f tmp/*.o tmp/*.map tmp/*.elf tmp/*.lst bin/*.bin tmp/*.d tmp/*.map tmp/*.i tmp/*.s tmp/*.res tmp/*.zip
