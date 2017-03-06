@@ -9,9 +9,9 @@ FREE_RTOS_PORT      = ARM_CM3
 FREE_RTOS_HEAP      = heap_4
 STARTUP_S           = startup_stm32f103xb.s
 
-SRCS            = main.c stm32f1xx_it.c
+SRCS            = main.c stm32f1xx_it.c stm32f1xx_hal_timebase_TIM.c
 SRCS_3RD        = system_stm32f1xx.c stm32f1xx_hal.c stm32f1xx_hal_rcc.c # HAL
-SRCS_3RD       += stm32f1xx_hal_cortex.c stm32f1xx_hal_gpio.c # HAL
+SRCS_3RD       += stm32f1xx_hal_cortex.c stm32f1xx_hal_gpio.c stm32f1xx_hal_tim.c stm32f1xx_hal_tim_ex.c # HAL
 SRCS_3RD       += cmsis_os.c tasks.c queue.c list.c timers.c # FreeRTOS
 SRCS_3RD       += croutine.c event_groups.c port.c ${FREE_RTOS_HEAP}.c # FreeRTOS
 
