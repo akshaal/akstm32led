@@ -9,7 +9,7 @@ FREE_RTOS_PORT      = ARM_CM3
 FREE_RTOS_HEAP      = heap_4
 STARTUP_S           = startup_stm32f103xb.s
 
-SRCS            = main.c
+SRCS            = main.c stm32f1xx_it.c
 SRCS_3RD        = system_stm32f1xx.c stm32f1xx_hal.c stm32f1xx_hal_rcc.c # HAL
 SRCS_3RD       += stm32f1xx_hal_cortex.c stm32f1xx_hal_gpio.c # HAL
 SRCS_3RD       += cmsis_os.c tasks.c queue.c list.c timers.c # FreeRTOS
@@ -29,6 +29,7 @@ CFLAGS += -g # Enable debug symbols in elf file
 CFLAGS += -std=gnu11 # Use GNU C 2011
 #CFLAGS += -O4 # Optimize for speed
 CFLAGS += -Os # Optimize for size
+#CFLAGS += -O0 # Optimize for nothing
 #CFLAGS += -funroll-loops # Unroll loops
 CFLAGS += -mcpu=${MCPU}
 CFLAGS += -mthumb # Generate either Thumb-1 (16bit) or Thumb-2 (32bit) instructions
