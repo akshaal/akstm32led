@@ -43,14 +43,12 @@
 
 #include "stm32f1xx_hal.h"
 #include "cmsis_os.h"
-
-osThreadId defaultTaskHandle;
+#include "ak_main_task.h"
 
 // Private function prototypes -----------------------------------------------
 void SystemClock_Config(void);
 void Error_Handler(void);
 static void MX_GPIO_Init(void);
-void StartDefaultTask(void const * argument);
 
 // ==========================================================================
 int main(void) {
@@ -64,8 +62,7 @@ int main(void) {
     MX_GPIO_Init();
 
     // Create the threads
-    osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-    defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+    ak_create_main_task();
 
     // Start scheduler
     osKernelStart();
@@ -129,25 +126,6 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-}
-
-// StartDefaultTask function
-void StartDefaultTask(void const *argument) {
-    for(;;) {
-        for (int i = 0; i < 100; i++) {
-            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-            osDelay(20);
-            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-            osDelay(20);
-        }
-
-        for (int i = 0; i < 10; i++) {
-            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-            osDelay(80);
-            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-            osDelay(80);
-        }
-    }
 }
 
 /**

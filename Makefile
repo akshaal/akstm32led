@@ -9,7 +9,8 @@ FREE_RTOS_PORT      = ARM_CM3
 FREE_RTOS_HEAP      = heap_4
 STARTUP_S           = startup_stm32f103xb.s
 
-SRCS            = main.c stm32f1xx_it.c stm32f1xx_hal_timebase_TIM.c
+SRCS_MY         = ak_main_task.c ak_rtos.c
+SRCS            = main.c stm32f1xx_it.c stm32f1xx_hal_timebase_TIM.c ${SRCS_MY}
 SRCS_3RD        = system_stm32f1xx.c stm32f1xx_hal.c stm32f1xx_hal_rcc.c # HAL
 SRCS_3RD       += stm32f1xx_hal_cortex.c stm32f1xx_hal_gpio.c stm32f1xx_hal_tim.c stm32f1xx_hal_tim_ex.c # HAL
 SRCS_3RD       += cmsis_os.c tasks.c queue.c list.c timers.c # FreeRTOS
@@ -37,7 +38,6 @@ CFLAGS += -fno-strict-aliasing # Makes more optimization possible
 CFLAGS += -ffreestanding # Assert that compilation targets a freestanding environment.
 CFLAGS += -flto # Enable link time optimization
 CFLAGS += -fwhole-program # Enable whole program optimization
-CFLAGS += -fshort-enums # Allocate to an enum type only as many bytes as it needs for the declared range of possible values.
 CFLAGS += --specs=nosys.specs # no complain about _exit and stuff
 CFLAGS += -Isrc-3rd # Include 3rd party sources
 CFLAGS += -Isrc # ... sources
