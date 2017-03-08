@@ -45,9 +45,10 @@
 #include "cmsis_os.h"
 #include "ak_main_task.h"
 
+#include "ak_led_fatal_ind.h"
+
 // Private function prototypes -----------------------------------------------
 void SystemClock_Config(void);
-void Error_Handler(void);
 static void MX_GPIO_Init(void);
 
 // ==========================================================================
@@ -68,8 +69,7 @@ int main(void) {
     osKernelStart();
 
     // We should never get here as control is now taken by the scheduler.
-    while (1) {
-    }
+    ak_led_fatal_ind_loop(ak_led_fatal_pattern_control);
 }
 
 // System Clock Configuration.
@@ -86,7 +86,7 @@ void SystemClock_Config(void) {
     RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
     RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
     if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
-        Error_Handler();
+        ak_led_fatal_ind_loop(ak_led_fatal_pattern_osc_config);
     }
 
     // Initializes the CPU, AHB and APB busses clocks.
@@ -96,7 +96,7 @@ void SystemClock_Config(void) {
     RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
     RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
     if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
-        Error_Handler();
+        ak_led_fatal_ind_loop(ak_led_fatal_pattern_clock_config);
     }
 
     // Configure the Systick interrupt time.
@@ -142,12 +142,3 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     }
 }
 
-
-/**
- * @brief  This function is executed in case of error occurrence.
- */
-void Error_Handler(void) {
-    /* User can add his own implementation to report the HAL error return state */
-    while(1) {
-    }
-}

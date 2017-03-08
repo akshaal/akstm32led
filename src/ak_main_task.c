@@ -1,3 +1,5 @@
+// GNU GPL blah blah blah (C) Akshaal, 2017 blah blah blah
+
 #include "ak_rtos.h"
 #include "ak_led.h"
 

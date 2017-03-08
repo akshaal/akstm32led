@@ -36,6 +36,9 @@
 #include "stm32f1xx_it.h"
 #include "cmsis_os.h"
 
+#include "ak_led_fatal_ind.h"
+
+
 extern TIM_HandleTypeDef htim1;
 
 /**
@@ -48,32 +51,28 @@ void NMI_Handler(void) {
  * @brief This function handles Hard fault interrupt.
  */
 void HardFault_Handler(void) {
-    while (1) {
-    }
+    ak_led_fatal_ind_loop(ak_led_fatal_pattern_hard);
 }
 
 /**
  * @brief This function handles Memory management fault.
  */
 void MemManage_Handler(void) {
-    while (1) {
-    }
+    ak_led_fatal_ind_loop(ak_led_fatal_pattern_memory);
 }
 
 /**
  * @brief This function handles Prefetch fault, memory access fault.
  */
 void BusFault_Handler(void) {
-    while (1) {
-    }
+    ak_led_fatal_ind_loop(ak_led_fatal_pattern_bus);
 }
 
 /**
  * @brief This function handles Undefined instruction or illegal state.
  */
 void UsageFault_Handler(void) {
-    while (1) {
-    }
+    ak_led_fatal_ind_loop(ak_led_fatal_pattern_usage);
 }
 
 /**
