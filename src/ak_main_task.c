@@ -1,6 +1,5 @@
-#include "stm32f1xx_hal.h"
-
 #include "ak_rtos.h"
+#include "ak_led.h"
 
 static void ak_main_task(void *argument);
 
@@ -12,9 +11,9 @@ static void ak_main_task(void *argument) {
     for(;;) {
         for (int i = 0; i < 100; i += 20) {
             for (int z = 0; z < 100 / i; i++) {
-                HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+                ak_led_off();;
                 ak_task_delay(i);
-                HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+                ak_led_on();
                 ak_task_delay(i);
             }
         }
