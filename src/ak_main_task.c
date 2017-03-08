@@ -7,6 +7,7 @@ void ak_create_main_task() {
     ak_task_create("main", ak_main_task, ak_main_task_priority);
 }
 
+__attribute__((noreturn))
 static void ak_main_task(void *argument) {
     for(;;) {
         for (int i = 0; i < 100; i += 20) {
