@@ -16,6 +16,9 @@ static ak_task_handle tx_task_handle;
 static ak_task_handle rx_task_handle;
 static ak_queue_handle tx_queue;
 static ak_queue_handle rx_queue;
+static ak_queue_handle rx_char_queue;
+static char rx_buf[AK_UART_RX_BUF_LEN];
+static int rx_buf_count;
 
 // ==================================================
 // Local function definitions
@@ -44,6 +47,7 @@ void ak_uart_init() {
     // Create queues
     tx_queue = ak_queue_create(AK_UART_TX_QUEUE_SIZE, sizeof(char*));
     rx_queue = ak_queue_create(AK_UART_RX_QUEUE_SIZE, sizeof(char*));
+    rx_char_queue = ak_queue_create(AK_UART_RX_CHAR_QUEUE_SIZE, 1);
 
     // Create uart task
     tx_task_handle = ak_task_create("uart_tx", ak_uart_tx_task, ak_uart_tx_task_priority);
@@ -81,8 +85,18 @@ static void ak_uart_tx_task(void *argument) {
 
 __attribute__((noreturn))
 static void ak_uart_rx_task(void *argument) {
+    rx_buf_count = 0;
+
     for(;;) {
-        ulTaskNotifyTake( /* xClearCountOnExit = */ pdTRUE, AK_TICK_IN_DAY);
+        // If there is something received, then we clear it in 60 seconds anyway, otherwise no need to wake up
+        int timeout = rx_buf_count ? pdMS_TO_TICKS(60000) : AK_TICK_IN_DAY;
+
+        // Wait for a char to be queued. Returns false if timeout... (nothing received)
+        int queue_rc = xQueueReceive(rx_char_queue, rx_buf + rx_buf_count, timeout);
+        if (queue_rc == pdFALSE) {
+            rx_buf_count = 0;
+            continue; // Try again
+        }
     }
 }
 

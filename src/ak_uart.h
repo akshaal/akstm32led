@@ -5,6 +5,7 @@
 
 #define AK_UART_TX_QUEUE_SIZE 50
 #define AK_UART_RX_QUEUE_SIZE 10
+#define AK_UART_RX_CHAR_QUEUE_SIZE 100
 #define AK_UART_RX_BUF_LEN 80
 
 void ak_uart_init();
