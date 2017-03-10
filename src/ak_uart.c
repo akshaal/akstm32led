@@ -92,10 +92,21 @@ static void ak_uart_rx_task(void *argument) {
         int timeout = rx_buf_count ? pdMS_TO_TICKS(60000) : AK_TICK_IN_DAY;
 
         // Wait for a char to be queued. Returns false if timeout... (nothing received)
-        int queue_rc = xQueueReceive(rx_char_queue, rx_buf + rx_buf_count, timeout);
+        char *buf_empty_pos = rx_buf + rx_buf_count;
+
+        int queue_rc = xQueueReceive(rx_char_queue, buf_empty_pos, timeout);
         if (queue_rc == pdFALSE) {
             rx_buf_count = 0;
             continue; // Try again
+        }
+
+        if (*buf_empty_pos == '\n') {
+            // TODO..........................................
+            char *dupped = ak_malloc(strlen(str));
+            strcpy(dupped, str);
+            xQueueSendToBack(tx_queue, &dupped, 0);
+            rx_buf_count = 0;
+        } else {
         }
     }
 }
