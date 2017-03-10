@@ -108,9 +108,6 @@ void SystemClock_Config(void) {
 
     // Configure the Systick
     HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
-
-    /* SysTick_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(SysTick_IRQn, 15, 0);
 }
 
 // Configure pins as: Analog, Input,  Output, EVENT_OUT, EXTI

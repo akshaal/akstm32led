@@ -44,6 +44,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
+#include "FreeRTOS.h"
 
 extern void Error_Handler(void);
 
@@ -73,10 +74,10 @@ void HAL_MspInit(void) {
     HAL_NVIC_SetPriority(DebugMonitor_IRQn, 0, 0);
 
     /* PendSV_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(PendSV_IRQn, 15, 0);
+    HAL_NVIC_SetPriority(PendSV_IRQn, configLIBRARY_KERNEL_INTERRUPT_PRIORITY, 0);
 
     /* SysTick_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(SysTick_IRQn, 15, 0);
+    HAL_NVIC_SetPriority(SysTick_IRQn, configLIBRARY_KERNEL_INTERRUPT_PRIORITY, 0);
 
     /** NOJTAG: JTAG-DP Disabled and SW-DP Enabled */
     __HAL_AFIO_REMAP_SWJ_NOJTAG();
@@ -100,6 +101,12 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart) {
         GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+        /* Configure the TIM1 IRQ priority */
+        HAL_NVIC_SetPriority(USART1_IRQn, configLIBRARY_KERNEL_INTERRUPT_PRIORITY, /* subpririty */ 0);
+
+        /* Enable the TIM1 global Interrupt */
+        HAL_NVIC_EnableIRQ(USART1_IRQn);
     }
 }
 
