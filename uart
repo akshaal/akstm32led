@@ -1,0 +1,9 @@
+#!/bin/sh
+
+SPEED=9600
+
+echo "UART speed is set to $SPEED"
+echo "Timeout is 5 seconds"
+echo
+
+busybox microcom -s $SPEED -t 5000 /dev/ttyUSB0

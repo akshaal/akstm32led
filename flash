@@ -1,0 +1,3 @@
+#!/bin/sh
+
+stm32flash -R -v -w bin/akstm32le.bin /dev/ttyUSB0

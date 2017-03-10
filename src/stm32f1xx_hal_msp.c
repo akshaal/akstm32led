@@ -102,10 +102,10 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart) {
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-        /* Configure the TIM1 IRQ priority */
+        /* Configure the USART IRQ priority */
         HAL_NVIC_SetPriority(USART1_IRQn, configLIBRARY_KERNEL_INTERRUPT_PRIORITY, /* subpririty */ 0);
 
-        /* Enable the TIM1 global Interrupt */
+        /* Enable the USART global Interrupt */
         HAL_NVIC_EnableIRQ(USART1_IRQn);
     }
 }
@@ -118,6 +118,8 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart) {
         // PA9     ------> USART1_TX
         // PA10     ------> USART1_RX
         HAL_GPIO_DeInit(GPIOA, GPIO_PIN_9 | GPIO_PIN_10);
+
+        HAL_NVIC_DisableIRQ(USART1_IRQn);
     }
 }
 

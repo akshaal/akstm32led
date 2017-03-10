@@ -38,7 +38,6 @@
 
 #include "ak_led_fatal_ind.h"
 
-
 extern TIM_HandleTypeDef htim1;
 
 /**
@@ -94,4 +93,3 @@ void SysTick_Handler(void) {
 void TIM1_UP_IRQHandler(void) {
     HAL_TIM_IRQHandler(&htim1);
 }
-
