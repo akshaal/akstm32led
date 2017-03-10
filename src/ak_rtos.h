@@ -11,6 +11,7 @@ typedef TaskHandle_t ak_task_handle;
 typedef void (*ak_task_f) ();
 
 typedef enum {
+    ak_uart_tx_task_priority = 1,
     ak_main_task_priority = 3
 } ak_task_priority;
 

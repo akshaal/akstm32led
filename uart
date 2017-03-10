@@ -1,9 +1,11 @@
 #!/bin/sh
 
 SPEED=9600
+TIMEOUT=60000
 
 echo "UART speed is set to $SPEED"
-echo "Timeout is 5 seconds"
+echo "Timeout is $TIMEOUT ms"
+echo "Press CTRL-X to quit"
 echo
 
-busybox microcom -s $SPEED -t 5000 /dev/ttyUSB0
+busybox microcom -s $SPEED -t $TIMEOUT /dev/ttyUSB0

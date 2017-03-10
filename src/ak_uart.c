@@ -4,11 +4,18 @@
 
 #include "ak_rtos.h"
 #include "ak_led_fatal_ind.h"
+#include "portable.h"
+#include "task.h"
 
 static UART_HandleTypeDef huart1;
-static void ak_uart_task(void *argument);
+static ak_task_handle tx_task_handle;
 
-static uint8_t hw[] = "hello world\n";
+// ==================================================
+// Local function definitions
+static void ak_uart_tx_task(void *argument);
+
+// ==================================================
+// Implementation
 
 void ak_uart_init() {
     /* USART1 init function */
@@ -25,18 +32,33 @@ void ak_uart_init() {
         ak_led_fatal_ind_loop(ak_led_fatal_pattern_uart_init);
     }
 
-    HAL_UART_Transmit_IT(&huart1, hw, sizeof(hw)-1);
-
     // Create uart task
-    //ak_task_create("uart", ak_main_task, ak_main_task_priority);
+    tx_task_handle = ak_task_create("uart_tx", ak_uart_tx_task, ak_uart_tx_task_priority);
 }
 
 __attribute__((noreturn))
-static void ak_uart_task(void *argument) {
+static void ak_uart_tx_task(void *argument) {
     for(;;) {
+        // Begin non-blocking interrupt-based transmission
+        HAL_UART_Transmit_IT(&huart1, "hello\r\n", 7);
+
+        // Block this FreeRTOS thread until we get notification from HAL_UART_TxCpltCallback (called from ISR)
+        // this can also timeout...
+        ulTaskNotifyTake( /* xClearCountOnExit = */ pdTRUE, pdMS_TO_TICKS(1000) );
     }
 }
 
 void USART1_IRQHandler(void) {
     HAL_UART_IRQHandler(&huart1);
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+    if (&huart1 == huart) {
+        long xHigherPriorityTaskWoken = pdFALSE;
+
+        // Wake task that's waiting for transmission to be completed
+        vTaskNotifyGiveFromISR(tx_task_handle, &xHigherPriorityTaskWoken);
+
+        portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
+    }
 }
