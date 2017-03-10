@@ -47,6 +47,8 @@
 
 #include "ak_led_fatal_ind.h"
 
+UART_HandleTypeDef huart1;
+
 // Private function prototypes -----------------------------------------------
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
@@ -146,8 +148,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 /* USART1 init function */
 static void MX_USART1_UART_Init(void) {
-    UART_HandleTypeDef huart1;
-
     huart1.Instance = USART1;
     huart1.Init.BaudRate = 115200;
     huart1.Init.WordLength = UART_WORDLENGTH_8B;
