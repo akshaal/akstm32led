@@ -20,6 +20,8 @@ static pattern_el osc_config_els[] = {{20, 20}, {20, 20}, {20, 20}, {20, 20}, {2
 static pattern_el clock_config_els[] = {{500, 500}, {500, 2000}, END};
 static pattern_el task_create_els[] = {{500, 500}, {500, 500}, {500, 2000}, END};
 static pattern_el uart_init_els[] = {{500, 500}, {500, 500}, {500, 500}, {500, 2000}, END};
+static pattern_el queue_create_els[] = {{500, 500}, {500, 500}, {500, 500}, {500, 500}, {500, 2000}, END};
+static pattern_el malloc_els[] = {{500, 500}, {500, 500}, {500, 500}, {500, 500}, {500, 500}, {500, 2000}, END};
 
 __attribute__((noreturn))
 void ak_led_fatal_ind_loop(const ak_led_fatal_pattern pattern) {
@@ -35,6 +37,8 @@ void ak_led_fatal_ind_loop(const ak_led_fatal_pattern pattern) {
     case ak_led_fatal_pattern_clock_config: pattern_els = clock_config_els; break;
     case ak_led_fatal_pattern_task_create: pattern_els = task_create_els; break;
     case ak_led_fatal_pattern_uart_init: pattern_els = uart_init_els; break;
+    case ak_led_fatal_pattern_queue_create: pattern_els = queue_create_els; break;
+    case ak_led_fatal_pattern_malloc: pattern_els = malloc_els; break;
     }
 
     while(1) {

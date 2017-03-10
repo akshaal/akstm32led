@@ -12,7 +12,9 @@ typedef enum {
     ak_led_fatal_pattern_osc_config = 5,
     ak_led_fatal_pattern_clock_config = 6,
     ak_led_fatal_pattern_task_create = 7,
-    ak_led_fatal_pattern_uart_init = 8
+    ak_led_fatal_pattern_uart_init = 8,
+    ak_led_fatal_pattern_queue_create = 9,
+    ak_led_fatal_pattern_malloc = 10
 } ak_led_fatal_pattern;
 
 __attribute__((noreturn))
