@@ -13,11 +13,15 @@
 
 static UART_HandleTypeDef huart1;
 static ak_task_handle tx_task_handle;
-static ak_queue_handle tx_task_queue;
+static ak_task_handle rx_task_handle;
+static ak_queue_handle tx_queue;
+static ak_queue_handle rx_queue;
 
 // ==================================================
 // Local function definitions
+
 static void ak_uart_tx_task(void *argument);
+static void ak_uart_rx_task(void *argument);
 
 // ==================================================
 // Implementation
@@ -37,28 +41,28 @@ void ak_uart_init() {
         ak_led_fatal_ind_loop(ak_led_fatal_pattern_uart_init);
     }
 
-    // Create TX queue
-    tx_task_queue = ak_queue_create(AK_UART_TX_QUEUE_SIZE, sizeof(char*));
+    // Create queues
+    tx_queue = ak_queue_create(AK_UART_TX_QUEUE_SIZE, sizeof(char*));
+    rx_queue = ak_queue_create(AK_UART_RX_QUEUE_SIZE, sizeof(char*));
 
     // Create uart task
     tx_task_handle = ak_task_create("uart_tx", ak_uart_tx_task, ak_uart_tx_task_priority);
+    rx_task_handle = ak_task_create("uart_rx", ak_uart_rx_task, ak_uart_rx_task_priority);
 }
 
 void ak_uart_send(char *str) {
     char *dupped = ak_malloc(strlen(str));
     strcpy(dupped, str);
-    xQueueSendToBack(tx_task_queue, &dupped, 0);
+    xQueueSendToBack(tx_queue, &dupped, 0);
 }
 
 __attribute__((noreturn))
 static void ak_uart_tx_task(void *argument) {
-    ak_uart_send("Welcome!\r\n");
-
     for(;;) {
         char *str;
 
         // Wait for a sting to be queued. Returns false if timeout... (nothing to send)
-        int queue_rc = xQueueReceive(tx_task_queue, &str, AK_TICK_IN_DAY);
+        int queue_rc = xQueueReceive(tx_queue, &str, AK_TICK_IN_DAY);
         if (queue_rc == pdFALSE) {
             continue; // Try again
         }
@@ -72,6 +76,13 @@ static void ak_uart_tx_task(void *argument) {
 
         // Free memory
         ak_free(str);
+    }
+}
+
+__attribute__((noreturn))
+static void ak_uart_rx_task(void *argument) {
+    for(;;) {
+        ulTaskNotifyTake( /* xClearCountOnExit = */ pdTRUE, AK_TICK_IN_DAY);
     }
 }
 
