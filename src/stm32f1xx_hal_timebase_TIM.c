@@ -63,7 +63,7 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
     uint32_t              uwPrescalerValue = 0;
     uint32_t              pFLatency;
 
-    /*Configure the TIM1 IRQ priority */
+    /* Configure the TIM1 IRQ priority */
     HAL_NVIC_SetPriority(TIM1_UP_IRQn, TickPriority ,0);
 
     /* Enable the TIM1 global Interrupt */
@@ -84,18 +84,17 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
     /* Initialize TIM1 */
     htim1.Instance = TIM1;
 
-    /* Initialize TIMx peripheral as follow:
-       + Period = [(TIM1CLK/1000) - 1]. to have a (1/1000) s time base.
-       + Prescaler = (uwTimclock/1000000 - 1) to have a 1MHz counter clock.
-       + ClockDivision = 0
-       + Counter direction = Up
-    */
+    // Initialize TIMx peripheral as follow:
+    //  + Period = [(TIM1CLK/1000) - 1]. to have a (1/1000) s time base.
+    //  + Prescaler = (uwTimclock/1000000 - 1) to have a 1MHz counter clock.
+    //  + ClockDivision = 0
+    //  + Counter direction = Up
     htim1.Init.Period = (1000000 / 1000) - 1;
     htim1.Init.Prescaler = uwPrescalerValue;
     htim1.Init.ClockDivision = 0;
     htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-    if(HAL_TIM_Base_Init(&htim1) == HAL_OK)
-    {
+
+    if (HAL_TIM_Base_Init(&htim1) == HAL_OK) {
         /* Start the TIM time Base generation in interrupt mode */
         return HAL_TIM_Base_Start_IT(&htim1);
     }

@@ -145,8 +145,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 }
 
 /* USART1 init function */
-static void MX_USART1_UART_Init(void)
-{
+static void MX_USART1_UART_Init(void) {
     UART_HandleTypeDef huart1;
 
     huart1.Instance = USART1;
