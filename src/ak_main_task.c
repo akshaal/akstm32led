@@ -31,6 +31,12 @@ static void ak_main_task(void *argument) {
         } else if (!strcmp(cmd, CMD_TURN_LED_OFF)) {
             ak_uart_send("All good things happen in darkness! Now you can start doing good things!!!\r\n\r\n");
             ak_led_off();
+        } else if (!strcmp(cmd, AK_UART_DOWN_KEY)) {
+            ak_uart_send("You can't go down, you silly!\r\n\r\n");
+        } else if (!strcmp(cmd, AK_UART_UP_KEY)) {
+            ak_uart_send("There is nothing up there... you can GO up... may be fly?..!\r\n\r\n");
+        } else if (!strcmp(cmd, AK_UART_LEFT_KEY) || !strcmp(cmd, AK_UART_RIGHT_KEY)) {
+            ak_uart_send("Where is left and where is right?! Can't go there, sorry....\r\n\r\n");
         } else {
             ak_uart_send("You can't do it!! (You just tried to '");
             ak_uart_send(cmd);
