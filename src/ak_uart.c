@@ -32,7 +32,7 @@ static void ak_uart_rx_task(void *argument);
 void ak_uart_init() {
     /* USART1 init function */
     huart1.Instance = USART1;
-    huart1.Init.BaudRate = 9600;
+    huart1.Init.BaudRate = 115200;
     huart1.Init.WordLength = UART_WORDLENGTH_8B;
     huart1.Init.StopBits = UART_STOPBITS_1;
     huart1.Init.Parity = UART_PARITY_NONE;
