@@ -153,16 +153,16 @@ static void ak_uart_rx_task(void *argument) {
             // ECHO
             if (*rx_buf == 0x1b) {
                 // Seems like an escape sequence
-                if (rx_buf_count == sizeof(seq_up) && strncmp(rx_buf, seq_up, sizeof(seq_up))) {
+                if (rx_buf_count == sizeof(seq_up) && !strncmp(rx_buf, seq_up, sizeof(seq_up))) {
                     queue_rx(AK_UART_UP_KEY, sizeof(AK_UART_UP_KEY));
                     rx_buf_count = 0;
-                } else if (rx_buf_count == sizeof(seq_down) && strncmp(rx_buf, seq_down, sizeof(seq_down))) {
+                } else if (rx_buf_count == sizeof(seq_down) && !strncmp(rx_buf, seq_down, sizeof(seq_down))) {
                     queue_rx(AK_UART_DOWN_KEY, sizeof(AK_UART_DOWN_KEY));
                     rx_buf_count = 0;
-                } else if (rx_buf_count == sizeof(seq_left) && strncmp(rx_buf, seq_left, sizeof(seq_left))) {
+                } else if (rx_buf_count == sizeof(seq_left) && !strncmp(rx_buf, seq_left, sizeof(seq_left))) {
                     queue_rx(AK_UART_LEFT_KEY, sizeof(AK_UART_LEFT_KEY));
                     rx_buf_count = 0;
-                } else if (rx_buf_count == sizeof(seq_right) && strncmp(rx_buf, seq_right, sizeof(seq_right))) {
+                } else if (rx_buf_count == sizeof(seq_right) && !strncmp(rx_buf, seq_right, sizeof(seq_right))) {
                     queue_rx(AK_UART_RIGHT_KEY, sizeof(AK_UART_RIGHT_KEY));
                     rx_buf_count = 0;
                 }
