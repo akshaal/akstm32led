@@ -104,15 +104,28 @@ static void ak_uart_rx_task(void *argument) {
             continue; // Try again
         }
 
-        if (*buf_empty_pos == '\n') {
+        // Process
+        const char c = *buf_empty_pos;
+
+        if (c == '\r') {
+            // NEWLINE
             char *dupped = ak_strndup(rx_buf, rx_buf_count);
-            if (xQueueSendToBack(tx_queue, &dupped, 0) == errQUEUE_FULL) {
+            if (xQueueSendToBack(rx_queue, &dupped, 0) == errQUEUE_FULL) {
                 ak_free(dupped);
             }
             rx_buf_count = 0;
+
+            // ECHO
+            ak_uart_send("!!!\r\n");
         } else if (rx_buf_count < AK_UART_RX_BUF_LEN - 1) {
             // Not overflow
             rx_buf_count++;
+
+            // ECHO
+            char echo_buf[2];
+            echo_buf[0] = c;
+            echo_buf[1] = '\0';
+            ak_uart_send(echo_buf);
         }
     }
 }
