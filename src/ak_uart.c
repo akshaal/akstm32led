@@ -90,12 +90,12 @@ static void ak_uart_rx_task(void *argument) {
 
     for(;;) {
         // If there is something received, then we clear it in 60 seconds anyway, otherwise no need to wake up
-        int timeout = rx_buf_count ? pdMS_TO_TICKS(60000) : AK_TICKS_IN_DAY;
+        const int timeout = rx_buf_count ? pdMS_TO_TICKS(60000) : AK_TICKS_IN_DAY;
 
         // Wait for a char to be queued. Returns false if timeout... (nothing received)
         char *buf_empty_pos = rx_buf + rx_buf_count;
 
-        int queue_rc = xQueueReceive(rx_char_queue, buf_empty_pos, timeout);
+        const int queue_rc = xQueueReceive(rx_char_queue, buf_empty_pos, timeout);
         if (queue_rc == pdFALSE) {
             rx_buf_count = 0;
             continue; // Try again
