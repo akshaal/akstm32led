@@ -18,7 +18,7 @@ typedef enum {
     ak_main_task_priority = 3
 } ak_task_priority;
 
-#define AK_TICK_IN_DAY   (pdMS_TO_TICKS(24 * 60 * 60 * 1000))
+#define AK_TICKS_IN_DAY   (pdMS_TO_TICKS(24 * 60 * 60 * 1000))
 
 void ak_task_delay(const uint32_t millisec);
 

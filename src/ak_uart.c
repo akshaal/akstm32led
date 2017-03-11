@@ -67,7 +67,7 @@ static void ak_uart_tx_task(void *argument) {
         char *str;
 
         // Wait for a sting to be queued. Returns false if timeout... (nothing to send)
-        int queue_rc = xQueueReceive(tx_queue, &str, AK_TICK_IN_DAY);
+        int queue_rc = xQueueReceive(tx_queue, &str, AK_TICKS_IN_DAY);
         if (queue_rc == pdFALSE) {
             continue; // Try again
         }
@@ -90,7 +90,7 @@ static void ak_uart_rx_task(void *argument) {
 
     for(;;) {
         // If there is something received, then we clear it in 60 seconds anyway, otherwise no need to wake up
-        int timeout = rx_buf_count ? pdMS_TO_TICKS(60000) : AK_TICK_IN_DAY;
+        int timeout = rx_buf_count ? pdMS_TO_TICKS(60000) : AK_TICKS_IN_DAY;
 
         // Wait for a char to be queued. Returns false if timeout... (nothing received)
         char *buf_empty_pos = rx_buf + rx_buf_count;
