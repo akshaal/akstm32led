@@ -41,11 +41,13 @@ static void ak_main_task(void *argument) {
                 ak_uart_send("(HEX: ");
                 char buf[3];
                 for (int i = 0; i < len; i++) {
-                    mini_snprintf(buf, 2, "%02X", cmd[i]);
+                    mini_snprintf(buf, 3, "%02X", cmd[i]);
                     ak_uart_send(buf);
                 }
-                ak_uart_send(")\r\n\r\n");
+                ak_uart_send(")\r\n");
             }
+
+            ak_uart_send("\r\n");
         }
 
         ak_free(cmd);

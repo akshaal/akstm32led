@@ -20,6 +20,11 @@ static ak_queue_handle rx_char_queue;
 static char rx_buf[AK_UART_RX_BUF_LEN];
 static int rx_buf_count;
 
+static const char const seq_up[] = {0x1B, 0x5B, 0x41};
+static const char const seq_down[] = {0x1B, 0x5B, 0x42};
+static const char const seq_left[] = {0x1B, 0x5B, 0x44};
+static const char const seq_right[] = {0x1B, 0x5B, 0x43};
+
 // ==================================================
 // Local function definitions
 
@@ -57,6 +62,13 @@ void ak_uart_init() {
 void ak_uart_send(const char const *str) {
     char const *dupped = ak_strdup(str);
     if (xQueueSendToBack(tx_queue, &dupped, 0) == errQUEUE_FULL) {
+        ak_free(dupped);
+    }
+}
+
+void queue_rx(const char const *str, const size_t len) {
+    char const *dupped = ak_strndup(str, len);
+    if (xQueueSendToBack(rx_queue, &dupped, 0) == errQUEUE_FULL) {
         ak_free(dupped);
     }
 }
@@ -125,10 +137,7 @@ static void ak_uart_rx_task(void *argument) {
                 ak_uart_send("!!!\r\n");
 
                 // Queue newline into rx_queue
-                char *dupped = ak_strndup(rx_buf, rx_buf_count);
-                if (xQueueSendToBack(rx_queue, &dupped, 0) == errQUEUE_FULL) {
-                    ak_free(dupped);
-                }
+                queue_rx(rx_buf, rx_buf_count);
 
                 // Reset our buffer position
                 rx_buf_count = 0;
@@ -142,10 +151,28 @@ static void ak_uart_rx_task(void *argument) {
             rx_buf_count++;
 
             // ECHO
-            char echo_buf[2];
-            echo_buf[0] = c;
-            echo_buf[1] = '\0';
-            ak_uart_send(echo_buf);
+            if (*rx_buf == 0x1b) {
+                // Seems like an escape sequence
+                if (rx_buf_count == sizeof(seq_up) && strncmp(rx_buf, seq_up, sizeof(seq_up))) {
+                    queue_rx(AK_UART_UP_KEY, sizeof(AK_UART_UP_KEY));
+                    rx_buf_count = 0;
+                } else if (rx_buf_count == sizeof(seq_down) && strncmp(rx_buf, seq_down, sizeof(seq_down))) {
+                    queue_rx(AK_UART_DOWN_KEY, sizeof(AK_UART_DOWN_KEY));
+                    rx_buf_count = 0;
+                } else if (rx_buf_count == sizeof(seq_left) && strncmp(rx_buf, seq_left, sizeof(seq_left))) {
+                    queue_rx(AK_UART_LEFT_KEY, sizeof(AK_UART_LEFT_KEY));
+                    rx_buf_count = 0;
+                } else if (rx_buf_count == sizeof(seq_right) && strncmp(rx_buf, seq_right, sizeof(seq_right))) {
+                    queue_rx(AK_UART_RIGHT_KEY, sizeof(AK_UART_RIGHT_KEY));
+                    rx_buf_count = 0;
+                }
+            } else {
+                // It's not an escape sequence, just echo it...
+                char echo_buf[2];
+                echo_buf[0] = c;
+                echo_buf[1] = '\0';
+                ak_uart_send(echo_buf);
+            }
         }
     }
 }
