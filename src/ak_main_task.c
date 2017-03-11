@@ -4,6 +4,7 @@
 #include "ak_led.h"
 #include "ak_uart.h"
 #include "string.h"
+#include "mini-printf.h"
 
 static void ak_main_task(void *argument);
 static void help();
@@ -33,7 +34,18 @@ static void ak_main_task(void *argument) {
         } else {
             ak_uart_send("You can't do it!! (You just tried to '");
             ak_uart_send(cmd);
-            ak_uart_send("'... ahahaha just LOL!!!ONEoneone.. ). You better ask for help!\r\n\r\n");
+            ak_uart_send("'... ahahaha just LOL!!!ONEoneone.. ). You better ask for help!\r\n");
+
+            const size_t len = strlen(cmd);
+            if (strlen(cmd) < 5) {
+                ak_uart_send("(HEX: ");
+                char buf[3];
+                for (int i = 0; i < len; i++) {
+                    mini_snprintf(buf, 2, "%02X", cmd[i]);
+                    ak_uart_send(buf);
+                }
+                ak_uart_send(")\r\n\r\n");
+            }
         }
 
         ak_free(cmd);
