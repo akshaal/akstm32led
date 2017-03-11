@@ -55,9 +55,10 @@ void ak_uart_init() {
 }
 
 void ak_uart_send(char *str) {
-    char *dupped = ak_malloc(strlen(str));
-    strcpy(dupped, str);
-    xQueueSendToBack(tx_queue, &dupped, 0);
+    char const *dupped = ak_strdup(str);
+    if (xQueueSendToBack(tx_queue, &dupped, 0) == errQUEUE_FULL) {
+        ak_free(dupped);
+    }
 }
 
 __attribute__((noreturn))
@@ -101,12 +102,14 @@ static void ak_uart_rx_task(void *argument) {
         }
 
         if (*buf_empty_pos == '\n') {
-            // TODO..........................................
-            char *dupped = ak_malloc(strlen(str));
-            strcpy(dupped, str);
-            xQueueSendToBack(tx_queue, &dupped, 0);
+            char *dupped = ak_strndup(rx_buf, rx_buf_count);
+            if (xQueueSendToBack(tx_queue, &dupped, 0) == errQUEUE_FULL) {
+                ak_free(dupped);
+            }
             rx_buf_count = 0;
-        } else {
+        } else if (rx_buf_count < AK_UART_RX_BUF_LEN - 1) {
+            // Not overflow
+            rx_buf_count++;
         }
     }
 }

@@ -3,23 +3,37 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "portable.h"
+#include "string.h"
 
 #include "ak_rtos.h"
 #include "ak_led_fatal_ind.h"
 
-void *ak_malloc(size_t xSize) {
-    void *rc = pvPortMalloc(xSize);
+char *ak_strdup(const char const *s) {
+    char *dst = ak_malloc(strlen(s) + 1);
+    strcpy(dst, s);
+    return dst;
+}
+
+char *ak_strndup(char const *s, const size_t size) {
+    char *dst = ak_malloc(size  + 1);
+    strncpy(dst, s, size);
+    *(dst+size) = '\0';
+    return dst;
+}
+
+void *ak_malloc(const size_t size) {
+    void *rc = pvPortMalloc(size);
     if (rc == NULL) {
         ak_led_fatal_ind_loop(ak_led_fatal_pattern_malloc);
     }
     return rc;
 }
 
-void ak_free(void *pv) {
-    vPortFree(pv);
+void ak_free(const void const *pv) {
+    vPortFree((void*)pv);
 }
 
-ak_task_handle ak_task_create(char const *name, const ak_task_f f, const ak_task_priority prio) {
+ak_task_handle ak_task_create(const char const *name, const ak_task_f f, const ak_task_priority prio) {
     TaskHandle_t task_handle;
 
     if (xTaskCreate(/* function */          f,
@@ -39,7 +53,7 @@ void ak_task_delay(const uint32_t millisec) {
     vTaskDelay(ticks ? ticks : 1);
 }
 
-ak_task_handle ak_queue_create(int items, int item_size) {
+ak_task_handle ak_queue_create(const int items, const size_t item_size) {
     ak_task_handle qh = xQueueCreate(items, item_size);
 
     if (qh == NULL) {

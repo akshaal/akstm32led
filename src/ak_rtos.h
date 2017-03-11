@@ -22,11 +22,13 @@ typedef enum {
 
 void ak_task_delay(const uint32_t millisec);
 
-ak_task_handle ak_task_create(char const *name, const ak_task_f f, const ak_task_priority prio);
+ak_task_handle ak_task_create(const char const *name, const ak_task_f f, const ak_task_priority prio);
 
-ak_task_handle ak_queue_create(int items, int item_size);
+ak_task_handle ak_queue_create(const int items, const size_t item_size);
 
-void *ak_malloc(size_t xSize);
-void ak_free(void *pv);
+void *ak_malloc(const size_t size);
+void ak_free(const void const *pv);
+char *ak_strdup(char const *s);
+char *ak_strndup(char const *s, const size_t size);
 
 #endif
