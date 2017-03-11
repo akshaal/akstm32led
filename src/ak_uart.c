@@ -86,6 +86,9 @@ static void ak_uart_tx_task(void *argument) {
 
 __attribute__((noreturn))
 static void ak_uart_rx_task(void *argument) {
+    // Enable interrupt RX Not Empty Interrupt
+    __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
+
     rx_buf_count = 0;
 
     for(;;) {
@@ -115,7 +118,22 @@ static void ak_uart_rx_task(void *argument) {
 }
 
 void USART1_IRQHandler(void) {
-    HAL_UART_IRQHandler(&huart1);
+    // We handle RX here, but TX is handled by HAL_UART implementation...
+
+    const int32_t flag = __HAL_UART_GET_FLAG(&huart1, UART_FLAG_RXNE);
+    const int32_t it_source = __HAL_UART_GET_IT_SOURCE(&huart1, UART_IT_RXNE);
+
+    if ((flag != RESET) && (it_source != RESET)) {
+        // RX. Read data from data register
+        const char c = (char)(huart1.Instance->DR & (uint8_t)0x00FF);
+
+        long xHigherPriorityTaskWoken = pdFALSE;
+        xQueueSendToBackFromISR(rx_char_queue, &c, &xHigherPriorityTaskWoken);
+        portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+    } else {
+        // TX
+        HAL_UART_IRQHandler(&huart1);
+    }
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
@@ -125,6 +143,6 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
         // Wake task that's waiting for transmission to be completed
         vTaskNotifyGiveFromISR(tx_task_handle, &xHigherPriorityTaskWoken);
 
-        portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
+        portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
     }
 }
