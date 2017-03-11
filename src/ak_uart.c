@@ -54,10 +54,21 @@ void ak_uart_init() {
     rx_task_handle = ak_task_create("uart_rx", ak_uart_rx_task, ak_uart_rx_task_priority);
 }
 
-void ak_uart_send(char *str) {
+void ak_uart_send(const char const *str) {
     char const *dupped = ak_strdup(str);
     if (xQueueSendToBack(tx_queue, &dupped, 0) == errQUEUE_FULL) {
         ak_free(dupped);
+    }
+}
+
+char *ak_uart_receive() {
+    char *str;
+    for (;;) {
+        int queue_rc = xQueueReceive(rx_queue, &str, AK_TICKS_IN_DAY);
+        if (queue_rc == pdFALSE) {
+            continue; // Try again
+        }
+        return str;
     }
 }
 
@@ -108,15 +119,24 @@ static void ak_uart_rx_task(void *argument) {
         const char c = *buf_empty_pos;
 
         if (c == '\r') {
-            // NEWLINE
-            char *dupped = ak_strndup(rx_buf, rx_buf_count);
-            if (xQueueSendToBack(rx_queue, &dupped, 0) == errQUEUE_FULL) {
-                ak_free(dupped);
-            }
-            rx_buf_count = 0;
+            if (rx_buf_count) {
+                // There is some cmd in buffer
+                // ECHO newline
+                ak_uart_send("!!!\r\n");
 
-            // ECHO
-            ak_uart_send("!!!\r\n");
+                // Queue newline into rx_queue
+                char *dupped = ak_strndup(rx_buf, rx_buf_count);
+                if (xQueueSendToBack(rx_queue, &dupped, 0) == errQUEUE_FULL) {
+                    ak_free(dupped);
+                }
+
+                // Reset our buffer position
+                rx_buf_count = 0;
+            } else {
+                // No data in buffer, just echo..
+                // ECHO newline
+                ak_uart_send("\r\n");
+            }
         } else if (rx_buf_count < AK_UART_RX_BUF_LEN - 1) {
             // Not overflow
             rx_buf_count++;

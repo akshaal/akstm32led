@@ -9,6 +9,7 @@
 #define AK_UART_RX_BUF_LEN 80
 
 void ak_uart_init();
-void ak_uart_send(char *str);
+void ak_uart_send(const char const *str);
+char *ak_uart_receive();
 
 #endif
