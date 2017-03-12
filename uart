@@ -1,7 +1,7 @@
 #!/bin/sh
 
 SPEED=115200
-TIMEOUT=60000
+TIMEOUT=600000
 
 echo "UART speed is set to $SPEED"
 echo "Timeout is $TIMEOUT ms"
