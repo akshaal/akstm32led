@@ -1,0 +1,9 @@
+#!/bin/sh
+
+echo "====================================================================="
+echo "Please use ${akc_cmd}open-stlink-console${akc_default} to open console"
+echo ""
+echo "Starting OPENOCD..."
+echo ""
+
+openocd

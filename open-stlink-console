@@ -1,0 +1,10 @@
+#!/bin/sh
+
+echo "====================================================================="
+echo "Here are some useful commands:"
+echo "  ${akc_cmd}reset${akc_default} - reset MCU"
+echo ""
+echo "Please also make sure that you have started 'connect-to-device-via-stlink' before you open ST-LINK console"
+echo ""
+
+telnet localhost 4444
