@@ -33,16 +33,16 @@ CFLAGS  = -Wall # All warnings
 CFLAGS += -save-temps=obj # Save temporary files (assembler etc) based on obj file location
 CFLAGS += -g # Enable debug symbols in elf file
 CFLAGS += -std=gnu11 # Use GNU C 2011
-#CFLAGS += -O4 # Optimize for speed
+#CFLAGS += -Ofast # Optimize for speed
 CFLAGS += -Os # Optimize for size
 #CFLAGS += -O0 # Optimize for nothing
-#CFLAGS += -funroll-loops # Unroll loops
+CFLAGS += -fipa-pta # Perform interprocedural pointer analysis and interprocedural modification and reference analysis.
+CFLAGS += -fwhole-program # Enable whole program optimization
 CFLAGS += -mcpu=${MCPU}
 CFLAGS += -mthumb # Generate either Thumb-1 (16bit) or Thumb-2 (32bit) instructions
 CFLAGS += -fno-strict-aliasing # Makes more optimization possible
 CFLAGS += -ffreestanding # Assert that compilation targets a freestanding environment.
 CFLAGS += -flto # Enable link time optimization
-CFLAGS += -fwhole-program # Enable whole program optimization
 CFLAGS += --specs=nosys.specs # no complain about _exit and stuff
 CFLAGS += -Isrc-3rd # Include 3rd party sources
 CFLAGS += -Isrc # ... sources
@@ -127,5 +127,7 @@ src-3rd: cube
 
 clean:
 	rm -f tmp/*.o tmp/*.map tmp/*.elf tmp/*.lst bin/*.bin tmp/*.d tmp/*.map tmp/*.i tmp/*.s tmp/*.res tmp/*.zip
+
+dstclean: clean
 	rm -rf tmp/STM32*
 	rm -rf cube src-3rd
