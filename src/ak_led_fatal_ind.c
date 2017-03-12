@@ -11,17 +11,17 @@ typedef struct {
     uint32_t off_ms;
 } pattern_el;
 
-static pattern_el hard_els[] = {{20, 20}, END};
-static pattern_el memory_els[] = {{500, 500}, END};
-static pattern_el bus_els[] = {{2000, 2000}, END};
-static pattern_el usage_els[] = {{2000, 200}, END};
-static pattern_el control_els[] = {{200, 2000}, END};
-static pattern_el osc_config_els[] = {{20, 20}, {20, 20}, {20, 20}, {20, 20}, {20, 2000}, END};
-static pattern_el clock_config_els[] = {{500, 500}, {500, 2000}, END};
-static pattern_el task_create_els[] = {{500, 500}, {500, 500}, {500, 2000}, END};
-static pattern_el uart_init_els[] = {{500, 500}, {500, 500}, {500, 500}, {500, 2000}, END};
-static pattern_el queue_create_els[] = {{500, 500}, {500, 500}, {500, 500}, {500, 500}, {500, 2000}, END};
-static pattern_el malloc_els[] = {{500, 500}, {500, 500}, {500, 500}, {500, 500}, {500, 500}, {500, 2000}, END};
+static const pattern_el const hard_els[] = {{20, 20}, END};
+static const pattern_el const memory_els[] = {{500, 500}, END};
+static const pattern_el const bus_els[] = {{2000, 2000}, END};
+static const pattern_el const usage_els[] = {{2000, 200}, END};
+static const pattern_el const control_els[] = {{200, 2000}, END};
+static const pattern_el const osc_config_els[] = {{20, 20}, {20, 20}, {20, 20}, {20, 20}, {20, 2000}, END};
+static const pattern_el const clock_config_els[] = {{500, 500}, {500, 2000}, END};
+static const pattern_el const task_create_els[] = {{500, 500}, {500, 500}, {500, 2000}, END};
+static const pattern_el const uart_init_els[] = {{500, 500}, {500, 500}, {500, 500}, {500, 2000}, END};
+static const pattern_el const queue_create_els[] = {{500, 500}, {500, 500}, {500, 500}, {500, 500}, {500, 2000}, END};
+static const pattern_el const malloc_els[] = {{500, 500}, {500, 500}, {500, 500}, {500, 500}, {500, 500}, {500, 2000}, END};
 
 __attribute__((noreturn))
 void ak_led_fatal_ind_loop(const ak_led_fatal_pattern pattern) {
