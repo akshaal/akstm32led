@@ -18,6 +18,6 @@ typedef enum {
 } ak_led_fatal_pattern;
 
 __attribute__((noreturn))
-void ak_led_fatal_ind_loop(const ak_led_fatal_pattern pattern);
+void ak_led_fatal_ind_loop(ak_led_fatal_pattern const pattern);
 
 #endif

@@ -20,15 +20,15 @@ typedef enum {
 
 #define AK_TICKS_IN_DAY   (pdMS_TO_TICKS(24 * 60 * 60 * 1000))
 
-void ak_task_delay(const uint32_t millisec);
+void ak_task_delay(uint32_t const millisec);
 
-ak_task_handle ak_task_create(const char const *name, const ak_task_f f, const ak_task_priority prio);
+ak_task_handle ak_task_create(char const * const name, ak_task_f const f, ak_task_priority const prio);
 
-ak_task_handle ak_queue_create(const int items, const size_t item_size);
+ak_task_handle ak_queue_create(int const items, size_t const item_size);
 
-void *ak_malloc(const size_t size);
-void ak_free(const void const *pv);
-char *ak_strdup(char const *s);
-char *ak_strndup(char const *s, const size_t size);
+void *ak_malloc(size_t const size);
+void ak_free(void const * const pv);
+char *ak_strdup(char const * const s);
+char *ak_strndup(char const * const s, size_t const size);
 
 #endif

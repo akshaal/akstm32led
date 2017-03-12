@@ -21,7 +21,7 @@ static void ak_main_task() {
     help();
 
     for(;;) {
-        const char const *cmd = ak_uart_receive();
+        char const * const cmd = ak_uart_receive();
 
         if (!strcmp(cmd, "help")) {
             help();
@@ -42,7 +42,7 @@ static void ak_main_task() {
             ak_uart_send(cmd);
             ak_uart_send("'... ahahaha just LOL!!!ONEoneone.. ). You better ask for help!\r\n");
 
-            const size_t len = strlen(cmd);
+            size_t const len = strlen(cmd);
             if (strlen(cmd) < 5) {
                 ak_uart_send("(HEX: ");
                 char buf[3];

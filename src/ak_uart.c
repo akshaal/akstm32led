@@ -18,16 +18,16 @@ static ak_queue_handle tx_queue;
 static ak_queue_handle rx_queue;
 static ak_queue_handle rx_char_queue;
 
-static const char const seq_up[] = {0x1B, 0x5B, 0x41};
-static const char const seq_down[] = {0x1B, 0x5B, 0x42};
-static const char const seq_left[] = {0x1B, 0x5B, 0x44};
-static const char const seq_right[] = {0x1B, 0x5B, 0x43};
+static char const seq_up[] = {0x1B, 0x5B, 0x41};
+static char const seq_down[] = {0x1B, 0x5B, 0x42};
+static char const seq_left[] = {0x1B, 0x5B, 0x44};
+static char const seq_right[] = {0x1B, 0x5B, 0x43};
 
 // ==================================================
 // Local function definitions
 
-static void ak_uart_tx_task(void *argument);
-static void ak_uart_rx_task(void *argument);
+static void ak_uart_tx_task();
+static void ak_uart_rx_task();
 
 // ==================================================
 // Implementation
@@ -57,24 +57,24 @@ void ak_uart_init() {
     rx_task_handle = ak_task_create("uart_rx", ak_uart_rx_task, ak_uart_rx_task_priority);
 }
 
-void ak_uart_send(const char const *str) {
-    char const *dupped = ak_strdup(str);
+void ak_uart_send(char const * const str) {
+    char const * const dupped = ak_strdup(str);
     if (xQueueSendToBack(tx_queue, &dupped, 0) == errQUEUE_FULL) {
         ak_free(dupped);
     }
 }
 
-void queue_rx(const char const *str, const size_t len) {
-    char const *dupped = ak_strndup(str, len);
+void queue_rx(char const * const str, size_t const len) {
+    char const * const dupped = ak_strndup(str, len);
     if (xQueueSendToBack(rx_queue, &dupped, 0) == errQUEUE_FULL) {
         ak_free(dupped);
     }
 }
 
 char *ak_uart_receive() {
-    char *str;
+    char * str;
     for (;;) {
-        int queue_rc = xQueueReceive(rx_queue, &str, AK_TICKS_IN_DAY);
+        int const queue_rc = xQueueReceive(rx_queue, &str, AK_TICKS_IN_DAY);
         if (queue_rc == pdFALSE) {
             continue; // Try again
         }
@@ -83,12 +83,12 @@ char *ak_uart_receive() {
 }
 
 __attribute__((noreturn))
-static void ak_uart_tx_task(void *argument) {
+static void ak_uart_tx_task() {
     for(;;) {
         char *str;
 
         // Wait for a sting to be queued. Returns false if timeout... (nothing to send)
-        int queue_rc = xQueueReceive(tx_queue, &str, AK_TICKS_IN_DAY);
+        int const queue_rc = xQueueReceive(tx_queue, &str, AK_TICKS_IN_DAY);
         if (queue_rc == pdFALSE) {
             continue; // Try again
         }
@@ -106,7 +106,7 @@ static void ak_uart_tx_task(void *argument) {
 }
 
 __attribute__((noreturn))
-static void ak_uart_rx_task(void *argument) {
+static void ak_uart_rx_task() {
     static char rx_buf[AK_UART_RX_BUF_LEN];
     static int rx_buf_count;
 
@@ -117,19 +117,19 @@ static void ak_uart_rx_task(void *argument) {
 
     for(;;) {
         // If there is something received, then we clear it in 60 seconds anyway, otherwise no need to wake up
-        const int timeout = rx_buf_count ? pdMS_TO_TICKS(60000) : AK_TICKS_IN_DAY;
+        int const timeout = rx_buf_count ? pdMS_TO_TICKS(60000) : AK_TICKS_IN_DAY;
 
         // Wait for a char to be queued. Returns false if timeout... (nothing received)
-        char *buf_empty_pos = rx_buf + rx_buf_count;
+        char * const buf_empty_pos = rx_buf + rx_buf_count;
 
-        const int queue_rc = xQueueReceive(rx_char_queue, buf_empty_pos, timeout);
+        int const queue_rc = xQueueReceive(rx_char_queue, buf_empty_pos, timeout);
         if (queue_rc == pdFALSE) {
             rx_buf_count = 0;
             continue; // Try again
         }
 
         // Process
-        const char c = *buf_empty_pos;
+        char const c = *buf_empty_pos;
 
         if (c == '\r') {
             if (rx_buf_count) {
@@ -181,12 +181,12 @@ static void ak_uart_rx_task(void *argument) {
 void USART1_IRQHandler(void) {
     // We handle RX here, but TX is handled by HAL_UART implementation...
 
-    const int32_t flag = __HAL_UART_GET_FLAG(&huart1, UART_FLAG_RXNE);
-    const int32_t it_source = __HAL_UART_GET_IT_SOURCE(&huart1, UART_IT_RXNE);
+    int32_t const flag = __HAL_UART_GET_FLAG(&huart1, UART_FLAG_RXNE);
+    int32_t const it_source = __HAL_UART_GET_IT_SOURCE(&huart1, UART_IT_RXNE);
 
     if ((flag != RESET) && (it_source != RESET)) {
         // RX. Read data from data register
-        const char c = (char)(huart1.Instance->DR & (uint8_t)0x00FF);
+        char const c = (char)(huart1.Instance->DR & (uint8_t)0x00FF);
 
         long xHigherPriorityTaskWoken = pdFALSE;
         xQueueSendToBackFromISR(rx_char_queue, &c, &xHigherPriorityTaskWoken);
@@ -197,7 +197,7 @@ void USART1_IRQHandler(void) {
     }
 }
 
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef * const huart) {
     if (&huart1 == huart) {
         long xHigherPriorityTaskWoken = pdFALSE;
 

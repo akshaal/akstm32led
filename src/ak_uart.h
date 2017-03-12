@@ -14,7 +14,7 @@
 #define AK_UART_DOWN_KEY "go down"
 
 void ak_uart_init();
-void ak_uart_send(const char const *str);
+void ak_uart_send(char const * const str);
 char *ak_uart_receive();
 
 #endif
