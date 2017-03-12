@@ -6,7 +6,7 @@
 #include "string.h"
 #include "mini-printf.h"
 
-static void ak_main_task(void *argument);
+static void ak_main_task();
 static void help();
 
 #define CMD_TURN_LED_ON "turn light on"
@@ -17,7 +17,7 @@ void ak_create_main_task() {
 }
 
 __attribute__((noreturn))
-static void ak_main_task(void *argument) {
+static void ak_main_task() {
     help();
 
     for(;;) {
