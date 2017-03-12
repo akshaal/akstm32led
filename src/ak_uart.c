@@ -17,8 +17,6 @@ static ak_task_handle rx_task_handle;
 static ak_queue_handle tx_queue;
 static ak_queue_handle rx_queue;
 static ak_queue_handle rx_char_queue;
-static char rx_buf[AK_UART_RX_BUF_LEN];
-static int rx_buf_count;
 
 static const char const seq_up[] = {0x1B, 0x5B, 0x41};
 static const char const seq_down[] = {0x1B, 0x5B, 0x42};
@@ -109,6 +107,9 @@ static void ak_uart_tx_task(void *argument) {
 
 __attribute__((noreturn))
 static void ak_uart_rx_task(void *argument) {
+    static char rx_buf[AK_UART_RX_BUF_LEN];
+    static int rx_buf_count;
+
     // Enable interrupt RX Not Empty Interrupt
     __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
 

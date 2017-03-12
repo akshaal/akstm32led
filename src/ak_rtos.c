@@ -14,7 +14,7 @@ char *ak_strdup(const char const *s) {
     return dst;
 }
 
-char *ak_strndup(char const *s, const size_t size) {
+char *ak_strndup(const char const *s, const size_t size) {
     char *dst = ak_malloc(size  + 1);
     strncpy(dst, s, size);
     *(dst+size) = '\0';
