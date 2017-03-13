@@ -1,0 +1,7 @@
+#!/bin/sh
+
+echo "====================================================================="
+echo "Please also make sure that you have started 'connect-to-device-via-stlink' before you run this script"
+echo ""
+
+make && arm-none-eabi-gdb tmp-dbg/akstm32le-dbg.elf

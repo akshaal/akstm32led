@@ -26,7 +26,7 @@ static void ak_main_task() {
         if (!strcmp(cmd, "help")) {
             help();
         } else if (!strcmp(cmd, CMD_TURN_LED_ON)) {
-            ak_uart_send("LET THERE BE LIGHT!!!!!!!!!\r\n\r\n");
+            ak_uart_send("LET THERE BE LIGHT!!!!!!!!!!\r\n\r\n");
             ak_led_on();
         } else if (!strcmp(cmd, CMD_TURN_LED_OFF)) {
             ak_uart_send("All good things happen in darkness! Now you can start doing good things!!!\r\n\r\n");
