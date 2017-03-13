@@ -10,6 +10,7 @@ echo "  ${akc_cmd}reg${akc_default} - list info about MCU registers (must be hal
 echo "  ${akc_cmd}halt${akc_default}, ${akc_cmd}resume${akc_default}, ${akc_cmd}step${akc_default} - obvious"
 echo "  ${akc_cmd}mdw${akc_default}, ${akc_cmd}mdh${akc_default}, ${akc_cmd}mdb${akc_default} - Display data at addr"
 echo "  ${akc_cmd}mww${akc_default}, ${akc_cmd}mwh${akc_default}, ${akc_cmd}mwb${akc_default} - Write data to addr"
+echo "  ${akc_cmd}dump_image${akc_default} - dump memory into a file"
 echo "  ${akc_cmd}help${akc_default} - help, ${akc_cmd}help <cmd>${akc_default} - help about a command"
 echo ""
 echo "Please also make sure that you have started 'connect-to-device-via-stlink' before you open ST-LINK console"
