@@ -89,13 +89,13 @@ all: tmp/$(TARGET)-opt.bin tmp-dbg/$(TARGET)-dbg.elf | dirs
 -include $(DEPS)
 
 tmp/$(TARGET)-opt.bin: $(OBJS) | dirs
-	$(CC) $(CFLAGS) $(LDFLAGS_OPT) $(LDFLAGS) src-3rd/${STARTUP_S} $^ -o tmp/$(TARGET)-opt.elf
+	$(CC) $(CFLAGS) $(CFLAGS_OPT) $(LDFLAGS) src-3rd/${STARTUP_S} $^ -o tmp/$(TARGET)-opt.elf
 	$(OBJDUMP) -St tmp/$(TARGET)-opt.elf >tmp/$(TARGET)-opt.lst
 	$(SIZE) tmp/$(TARGET)-opt.elf
 	$(OBJCOPY) -O binary tmp/$(TARGET)-opt.elf tmp/$(TARGET)-opt.bin
 
 tmp-dbg/$(TARGET)-dbg.elf: $(OBJS_DBG) | dirs
-	$(CC) $(CFLAGS) $(LDFLAGS_DBG) $(LDFLAGS) src-3rd/${STARTUP_S} $^ -o tmp-dbg/$(TARGET)-dbg.elf
+	$(CC) $(CFLAGS) $(CFLAGS_DBG) $(LDFLAGS) src-3rd/${STARTUP_S} $^ -o tmp-dbg/$(TARGET)-dbg.elf
 	$(OBJDUMP) -St tmp-dbg/$(TARGET)-dbg.elf >tmp-dbg/$(TARGET)-dbg.lst
 	$(SIZE) tmp-dbg/$(TARGET)-dbg.elf
 

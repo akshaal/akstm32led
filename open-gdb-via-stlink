@@ -4,4 +4,4 @@ echo "====================================================================="
 echo "Please also make sure that you have started 'connect-to-device-via-stlink' before you run this script"
 echo ""
 
-make && arm-none-eabi-gdb tmp-dbg/akstm32le-dbg.elf
+make && arm-none-eabi-gdb -x ak-gdb-script tmp-dbg/akstm32le-dbg.elf

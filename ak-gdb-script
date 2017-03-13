@@ -1,0 +1,306 @@
+target remote localhost:3333
+
+
+# =================================================================================
+define reload
+   printf "\n================== RELOADING ====================\n"
+   python
+import subprocess
+rc = subprocess.call("make")
+if rc == 0:
+   print("")
+   gdb.execute("monitor reset halt")
+   gdb.execute("load")
+   print("")
+   print("type 'continue' to run")
+   print("")
+end
+    printf "\n"
+end
+document reload
+
+Make, load and restart.
+
+end
+
+# =================================================================================
+define bpl
+  info breakpoints
+end
+document bpl
+
+List all breakpoints.
+
+end
+
+# =================================================================================
+define bp
+  if $argc != 1
+    help bp
+  else
+    break $arg0
+  end
+end
+document bp
+
+Set breakpoint.
+Usage: bp LOCATION
+LOCATION may be a line number, function name, or "*" and an address.
+To break on a symbol you must enclose symbol name inside "".
+Example:
+bp "[NSControl stringValue]"
+Or else you can use directly the break command (break [NSControl stringValue])
+
+end
+
+# =================================================================================
+
+define bpc
+  if $argc != 1
+    help bpc
+  else
+    clear $arg0
+  end
+end
+document bpc
+
+Clear breakpoint.
+Usage: bpc LOCATION
+LOCATION may be a line number, function name, or "*" and an address.
+
+end
+
+
+# =================================================================================
+
+define bpe
+  if $argc != 1
+    help bpe
+  else
+    enable $arg0
+  end
+end
+document bpe
+
+Enable breakpoint with number NUM.
+Usage: bpe NUM
+
+end
+
+
+# =================================================================================
+
+define bpd
+  if $argc != 1
+    help bpd
+  else
+    disable $arg0
+  end
+end
+document bpd
+
+Disable breakpoint with number NUM.
+Usage: bpd NUM
+
+end
+
+# =================================================================================
+
+define bpt
+  if $argc != 1
+    help bpt
+  else
+    tbreak $arg0
+  end
+end
+document bpt
+
+Set a temporary breakpoint.
+This breakpoint will be automatically deleted when hit!.
+Usage: bpt LOCATION
+LOCATION may be a line number, function name, or "*" and an address.
+
+end
+
+# =================================================================================
+
+define bpm
+  if $argc != 1
+    help bpm
+  else
+    awatch $arg0
+  end
+end
+document bpm
+
+Set a read/write breakpoint on EXPRESSION, e.g. *address.
+Usage: bpm EXPRESSION
+
+end
+
+# =================================================================================
+
+define bhb
+  if $argc != 1
+    help bhb
+  else
+    hb $arg0
+  end
+end
+document bhb
+
+Set hardware assisted breakpoint.
+Usage: bhb LOCATION
+LOCATION may be a line number, function name, or "*" and an address.
+
+end
+
+# =================================================================================
+
+define bht
+  if $argc != 1
+    help bht
+  else
+    thbreak $arg0
+  end
+end
+document bht
+
+Set a temporary hardware breakpoint.
+This breakpoint will be automatically deleted when hit!
+Usage: bht LOCATION
+LOCATION may be a line number, function name, or "*" and an address.
+
+end
+
+# =================================================================================
+
+define print-char
+	if ($arg0 > 0xff)
+		print "not a character"
+		""
+	else
+		if ($arg0 == '\n')
+			printf "\\n"
+		else
+			if ($arg0 == '\t')
+				printf "\\t"
+			else
+				if ($arg0 == '\r')
+					printf "\\r"
+				else
+					if ($arg0 == '\'')
+						printf "\\'"
+					else
+						if (($arg0 < 0x20) || ($arg0 >= 0x7f))
+							printf "\\%03o", $arg0
+						else
+							printf "%c", $arg0
+						end
+					end
+				end
+			end
+		end
+	end
+end
+document print-char
+
+Print a single character in a readable fashion.
+
+end
+
+# =================================================================================
+
+define stack
+  if $argc == 0
+    printf "\n===== STACK ====================================\n"
+    info stack
+    printf "\n"
+  end
+  if $argc == 1
+    printf "\n===== STACK ====================================\n"
+    info stack $arg0
+    printf "\n"
+  end
+  if $argc > 1
+    help stack
+  end
+end
+document stack
+
+Print backtrace of the call stack, or innermost COUNT frames.
+Usage: stack <COUNT>
+
+end
+
+# =================================================================================
+
+define frame
+  printf "\n===== FRAME ====================================\n"
+  info frame
+  info args
+  info locals
+  printf "\n"
+end
+document frame
+Print stack frame.
+end
+
+# =================================================================================
+
+define func
+  if $argc == 0
+    printf "\n===== FUNCTIONS ====================================\n"
+    info functions
+    printf "\n"
+  end
+  if $argc == 1
+    printf "\n===== FUNCTION MATCHING REGEX ==================\n"
+    info functions $arg0
+    printf "\n"
+  end
+  if $argc > 1
+    help func
+  end
+end
+document func
+
+Print all function names in target, or those matching REGEXP.
+Usage: func <REGEXP>
+
+end
+
+# =================================================================================
+
+define var
+  if $argc == 0
+    printf "\n===== VARIABLES ====================================\n"
+    info variables
+    printf "\n"
+  end
+  if $argc == 1
+    printf "\n===== VARIABLE MATCHING REGEX =======================\n"
+    info variables $arg0
+    printf "\n"
+  end
+  if $argc > 1
+    help var
+  end
+end
+document var
+
+Print all global and static variable names (symbols), or those matching REGEXP.
+Usage: var <REGEXP>
+
+end
+
+# =================================================================================
+
+define threads
+  printf "\n===== THREADS ====================================\n"
+  info threads
+  printf "\n"
+end
+document threads
+Print threads in target.
+end
