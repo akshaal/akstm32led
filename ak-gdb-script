@@ -6,7 +6,7 @@ define reload
    printf "\n================== RELOADING ====================\n"
    python
 import subprocess
-rc = subprocess.call("make")
+rc = subprocess.call(["make", "debug-only"])
 if rc == 0:
    print("")
    gdb.execute("monitor reset halt")
@@ -19,9 +19,33 @@ end
 end
 document reload
 
-Make, load and restart.
+Make, load.
 
 end
+
+# =================================================================================
+define restart
+   printf "\n================== RESTARTING ====================\n"
+   python
+import subprocess
+rc = subprocess.call(["make", "debug-only"])
+if rc == 0:
+   print("")
+   gdb.execute("monitor reset halt")
+   gdb.execute("load")
+   print("")
+   print("Press CTRL-C to stop")
+   gdb.execute("continue")
+   print("")
+end
+    printf "\n"
+end
+document restart
+
+Make, load, restart.
+
+end
+
 
 # =================================================================================
 define bpl

@@ -63,7 +63,7 @@ static void ak_main_task() {
 static void help() {
     ak_uart_send(
         "\r\n"
-        "Welcome to the dungeon!\r\n"
+        "Welcome to the dungeon!!\r\n"
         "\r\n"
         "You can:\r\n"
         "  " CMD_TURN_LED_ON " - to turn light on\r\n"
