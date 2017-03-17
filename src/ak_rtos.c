@@ -37,7 +37,7 @@ ak_task_handle ak_task_create(char const * const name, ak_task_f const f, ak_tas
     TaskHandle_t task_handle;
 
     if (xTaskCreate(/* function */          f,
-                    /* name */              "main",
+                    /* name */              name,
                     /* stack size */        128,
                     /* argument */          NULL,
                     /* priority */          prio,

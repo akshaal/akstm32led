@@ -11,16 +11,19 @@ STARTUP_S           = startup_stm32f103xb.s
 
 SRCS_MY         = ak_main_task.c ak_rtos.c ak_led.c ak_led_fatal_ind.c ak_uart.c
 
+# Stuff from SRC directory
 SRCS            = mini-printf.c 
 SRCS           += main.c stm32f1xx_it.c stm32f1xx_hal_timebase_TIM.c ${SRCS_MY}
+SRCS           += FreeRTOS/tasks.c FreeRTOS/queue.c FreeRTOS/list.c FreeRTOS/timers.c # FreeRTOS
+SRCS           += FreeRTOS/croutine.c FreeRTOS/event_groups.c FreeRTOS/port.c FreeRTOS/${FREE_RTOS_HEAP}.c # FreeRTOS
 
+# Stuff from SRC-3rd directory (dynamic directory)
 SRCS_3RD        = system_stm32f1xx.c stm32f1xx_hal.c stm32f1xx_hal_rcc.c # HAL
 SRCS_3RD       += stm32f1xx_hal_cortex.c stm32f1xx_hal_gpio.c stm32f1xx_hal_tim.c stm32f1xx_hal_tim_ex.c # HAL
 SRCS_3RD       += stm32f1xx_hal_msp.c # HAL
 SRCS_3RD       += stm32f1xx_hal_uart.c # HAL UART
 SRCS_3RD       += stm32f1xx_hal_dma.c # HAL DMA
-SRCS_3RD       += cmsis_os.c tasks.c queue.c list.c timers.c # FreeRTOS
-SRCS_3RD       += croutine.c event_groups.c port.c ${FREE_RTOS_HEAP}.c # FreeRTOS
+SRCS_3RD       += cmsis_os.c # FreeRTOS ST stuff
 
 CMSIS_BASE      = Drivers/CMSIS/Device/ST/STM32F1xx
 CMSIS_SRCS      = Templates/system_stm32f1xx.c Templates/gcc/${STARTUP_S}
@@ -36,24 +39,30 @@ CFLAGS += -mcpu=${MCPU}
 CFLAGS += -mthumb # Generate either Thumb-1 (16bit) or Thumb-2 (32bit) instructions
 CFLAGS += -fno-strict-aliasing # Makes more optimization possible
 CFLAGS += -ffreestanding # Assert that compilation targets a freestanding environment.
-CFLAGS += -fwhole-program # Enable whole program optimization
-CFLAGS += -flto # Enable link time optimization
 CFLAGS += --specs=nosys.specs # no complain about _exit and stuff
 CFLAGS += -Isrc-3rd # Include 3rd party sources
 CFLAGS += -Isrc # ... sources
+CFLAGS += -Isrc/FreeRTOS # ... sources
 CFLAGS += -D${STM32_TARGET_DEF} # Define target that's needed by stm32f1xx.h
 
 CFLAGS_DBG  = -g # Enable debug symbols in elf file
 CFLAGS_DBG += -Og # Optimize for debug
+CFLAGS_DBG += -DAK_USED_IN_DBG="__attribute__((used))" # Marks as used
 
 CFLAGS_OPT  = -Os # Optimize for size
+CFLAGS_OPT += -flto # Enable link time optimization
+CFLAGS_OPT += -fwhole-program # Enable whole program optimization
+CFLAGS_OPT += -DAK_USED_IN_DBG="" # Not mark as used
 
 # Linked flags
-LDFLAGS  = -Wl,--gc-sections # Remove unused sections (e.g. remove unused data and functions)
-LDFLAGS += -Wl,--relax # Perform optimizations in linker
-LDFLAGS += -Wl,-Map=tmp/$(TARGET).map # Write map file
+LDFLAGS  = -Wl,-Map=tmp/$(TARGET).map # Write map file
 LDFLAGS += -T${LDFILE} # Link script
 LDFLAGS += -lc # Use standard C file
+
+LDFLAGS_DBG  =
+
+LDFLAGS_OPT  = -Wl,--gc-sections # Remove unused sections (e.g. remove unused data and functions)
+LDFLAGS_OPT += -Wl,--relax # Perform optimizations in linker
 
 # Applications
 AR          = $(PREFIX)-ar
@@ -93,13 +102,13 @@ prod-only: tmp/$(TARGET)-opt.bin | dirs
 -include $(DEPS)
 
 tmp/$(TARGET)-opt.bin: $(OBJS) | dirs
-	$(CC) $(CFLAGS) $(CFLAGS_OPT) $(LDFLAGS) src-3rd/${STARTUP_S} $^ -o tmp/$(TARGET)-opt.elf
+	$(CC) $(CFLAGS) $(CFLAGS_OPT) $(LDFLAGS) $(LDFLAGS_OPT) src-3rd/${STARTUP_S} $^ -o tmp/$(TARGET)-opt.elf
 	$(OBJDUMP) -St tmp/$(TARGET)-opt.elf >tmp/$(TARGET)-opt.lst
 	$(SIZE) tmp/$(TARGET)-opt.elf
 	$(OBJCOPY) -O binary tmp/$(TARGET)-opt.elf tmp/$(TARGET)-opt.bin
 
-tmp-dbg/$(TARGET)-dbg.elf: $(OBJS_DBG) | dirs
-	$(CC) $(CFLAGS) $(CFLAGS_DBG) $(LDFLAGS) src-3rd/${STARTUP_S} $^ -o tmp-dbg/$(TARGET)-dbg.elf
+tmp-dbg/$(TARGET)-dbg.elf: $(OBJS_DBG) tmp-dbg/ak_dbg.o src-3rd/${STARTUP_S} | dirs
+	$(CC) $(CFLAGS) $(CFLAGS_DBG) $(LDFLAGS) $(LDFLAGS_DBG) $^ -o tmp-dbg/$(TARGET)-dbg.elf
 	$(OBJDUMP) -St tmp-dbg/$(TARGET)-dbg.elf >tmp-dbg/$(TARGET)-dbg.lst
 	$(SIZE) tmp-dbg/$(TARGET)-dbg.elf
 
@@ -120,12 +129,20 @@ tmp-dbg/%.o : src-3rd/%.c | dirs
 
 .PHONY: all clean dirs debug-only prod-only
 
-dirs: cube src-3rd
+dirs: cube src-3rd tmp tmp-dbg
 
 cube: | ${CUBEFILE_REL}
 	cd tmp && unzip ../${CUBEFILE_REL}
 	mv tmp/STM32Cube* cube
 	chmod 755 cube
+
+tmp:
+	mkdir tmp
+	mkdir tmp/FreeRTOS
+
+tmp-dbg:
+	mkdir tmp-dbg
+	mkdir tmp-dbg/FreeRTOS
 
 src-3rd: cube
 	mkdir src-3rd src-3rd/Legacy
@@ -136,17 +153,10 @@ src-3rd: cube
 	cp cube/${HAL_BASE}/Inc/Legacy/*.h src-3rd/Legacy/
 	cp cube/Drivers/CMSIS/Include/* src-3rd/
 	cp cube/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/* src-3rd/
-	cp cube/Middlewares/Third_Party/FreeRTOS/Source/include/* src-3rd/
-	cp cube//Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/${FREE_RTOS_PORT}/* src-3rd/
-	cp cube//Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/${FREE_RTOS_HEAP}.c src-3rd/
-	cp cube//Middlewares/Third_Party/FreeRTOS/Source/*.c src-3rd/
-	dos2unix src-3rd/task.h # We are going to patch it...
-	patch -p1 < src-3rd.patch
 
 clean:
-	rm -f tmp/*.o tmp/*.map tmp/*.elf tmp/*.lst tmp/*.bin tmp/*.d tmp/*.map tmp/*.i tmp/*.s tmp/*.res tmp/*.zip
-	rm -f tmp-dbg/*.o tmp-dbg/*.map tmp-dbg/*.elf tmp-dbg/*.lst tmp-dbg/*.bin tmp-dbg/*.d tmp-dbg/*.map tmp-dbg/*.i tmp-dbg/*.s tmp-dbg/*.res tmp-dbg/*.zip
+	rm -rf tmp tmp-dbg
 
-dstclean: clean
+distclean: clean
 	rm -rf tmp/STM32*
 	rm -rf cube src-3rd
