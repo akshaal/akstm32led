@@ -1,8 +1,12 @@
+# GNU GPL blah blah blah (C) Akshaal, 2017 blah blah blah
+
 target remote localhost:3333
 
 # That's what CORTEX-M3 support
 set remote hardware-breakpoint-limit 6
 set remote hardware-watchpoint-limit 4
+
+source akgdb.py
 
 # =================================================================================
 define reload
