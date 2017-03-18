@@ -209,13 +209,15 @@ def cmd_reload(args):
         print_info("type ", STRESS_COLOR, "continue", INFO_COLOR, " to run\n")
 
 # - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
-#def cmd_restart(args):
-#    if call(["make", "debug-only"]) == 0:
-#        gdb.execute("monitor reset halt")
-#        gdb.execute("load")
-#        print("")
-#        print_info("type ", STRESS_COLOR, "continue", INFO_COLOR, " to run")
-#        print("")
+@ak_cmd(g_help, "make, reset, load, cont")
+def cmd_restart(args):
+    if call(["make", "debug-only"]) == 0:
+        gdb_exec("monitor reset halt")
+        gdb_exec("load")
+        print("")
+        print_info("Press CTRL-C to interrupt execution")
+        gdb_exec("continue")
+        print("")
 
 # ===================================================================================
 
