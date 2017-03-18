@@ -20,6 +20,11 @@ print("\nLOADING AK-GDB...\n")
 TERM = os.environ.get ('TERM')
 DEVNULL = open (os.devnull, 'w')
 
+g_help = []
+t_help = []
+b_help = []
+o_help = [("continue", "")]
+
 try:
     TERM_COLUMNS = int (os.popen ('stty size 2>/dev/null', 'r').read ().split () [1])
     RESET_COLOR = '\033[0m'
@@ -174,10 +179,6 @@ def ak_cmd(help_grp, desc, **extra):
 ############################################################################################################
 # Commands
 
-g_help = []
-t_help = []
-b_help = []
-
 # - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
 @ak_cmd(g_help, "this help", no_desc_in_title = True)
 def cmd_akhelp(args):
@@ -214,6 +215,8 @@ def cmd_akhelp(args):
     l_show_grp(t_help)
     print()
     l_show_grp(b_help)
+    print()
+    l_show_grp(o_help)
     print_sep_end()
 
 # - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
