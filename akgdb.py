@@ -129,6 +129,9 @@ class Struct:
     def __repr__ (self):
         return "Struct" + repr (self.__dict__)
 
+
+class NeedHelp(BaseException): pass
+
 # - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
 class AkSimpleCmd(gdb.Command):
     def __init__(self, name, f):
@@ -148,7 +151,11 @@ def ak_cmd(help_grp, desc, **extra):
                 title = name + " " + "(" + desc + ")"
 
             print_sep_start(title)
-            f(*args, **kwds)
+            try:
+                f(*args, **kwds)
+            except NeedHelp:
+                print_error("Please check arguments:")
+                print(f.__doc__)
 
         name = f.__name__
 
@@ -168,6 +175,8 @@ def ak_cmd(help_grp, desc, **extra):
 # Commands
 
 g_help = []
+t_help = []
+b_help = []
 
 # - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
 @ak_cmd(g_help, "this help", no_desc_in_title = True)
@@ -176,14 +185,18 @@ def cmd_akhelp(args):
         used = 0
         acc = ""
         for name, desc in l:
-            fmt= STRESS_COLOR + name + RESET_COLOR + " - " + desc
-            size = len(name) + len(desc) + 3
+            if desc == "":
+                fmt = STRESS_COLOR + name + RESET_COLOR
+                size = len(name)
+            else:
+                fmt = STRESS_COLOR + name + RESET_COLOR + " - " + desc
+                size = len(name) + len(desc) + 3
 
             delim = ""
             if used == 0:
                 used_new = size
             else:
-                used_new = size + 3
+                used_new = used + size + 3
                 delim = "   "
 
             if used_new > TERM_COLUMNS:
@@ -197,6 +210,10 @@ def cmd_akhelp(args):
         print(acc)
 
     l_show_grp(g_help)
+    print()
+    l_show_grp(t_help)
+    print()
+    l_show_grp(b_help)
     print_sep_end()
 
 # - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
@@ -219,8 +236,124 @@ def cmd_restart(args):
         gdb_exec("continue")
         print("")
 
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(t_help, "", no_desc_in_title = True)
+def cmd_threads(args):
+    gdb_exec("info threads")
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(t_help, "list variables: [regex]", no_desc_in_title = True)
+def cmd_var(args):
+    gdb_exec(("info variables " + args).strip())
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(t_help, "list functions: [regex]", no_desc_in_title = True)
+def cmd_func(args):
+    gdb_exec(("info functions " + args).strip())
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(t_help, "[frames count]", no_desc_in_title = True)
+def cmd_stack(args):
+    gdb_exec(("info stack " + args).strip())
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(t_help, "frame, args, locals", no_desc_in_title = True)
+def cmd_frame(args):
+    gdb_exec("info frame")
+    gdb_exec("info args")
+    gdb_exec("info locals")
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(b_help, "breakpoints")
+def cmd_bpl(args):
+    gdb_exec("info breakpoints")
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(b_help, "set breakpoint: <LOC>")
+def cmd_bp(args):
+    """
+    LOC may be a line number, function name, or "*" and an address.
+    To break on a symbol you must enclose symbol name inside "".
+    Example:
+       bp "[NSControl stringValue]"
+       Or else you can use directly the break command (break [NSControl stringValue])
+    """
+    if not args: raise NeedHelp()
+    gdb_exec("break " + args)
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(b_help, "Clear breakpoint: <LOC>")
+def cmd_bpc(args):
+    """    LOC may be a line number, function name, or "*" and an address."""
+    if not args: raise NeedHelp()
+    gdb_exec("clear " + args)
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(b_help, "Enable breakpoint: <N>")
+def cmd_bpe(args):
+    """    N - Breakpoint number."""
+    if not args:
+        gdb_exec("info breakpoints")
+        print()
+        raise NeedHelp()
+
+    gdb_exec("enable " + args)
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(b_help, "Disable breakpoint: <N>")
+def cmd_bpd(args):
+    """    N - Breakpoint number."""
+    if not args:
+        gdb_exec("info breakpoints")
+        print()
+        raise NeedHelp()
+
+    gdb_exec("disable " + args)
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(b_help, "Set temp breakpoint: <LOC>")
+def cmd_bpt(args):
+    """
+    Set a temporary breakpoint.
+    This breakpoint will be automatically deleted when hit!.
+    LOC may be a line number, function name, or "*" and an address.
+    """
+    if not args: raise NeedHelp()
+    gdb_exec("tbreak " + args)
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(b_help, "Set R/W breakpoint: <EXPR>")
+def cmd_bpm(args):
+    """    Set a read/write breakpoint on EXPRESSION, e.g. *address."""
+    if not args: raise NeedHelp()
+    gdb_exec("awatch " + args)
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(b_help, "Set HW breakpoint: <LOC>")
+def cmd_bhb(args):
+    """
+    Set hardware assisted breakpoint.
+    LOCATION may be a line number, function name, or "*" and an address.
+    """
+    if not args: raise NeedHelp()
+    gdb_exec("hbreak " + args)
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(b_help, "Set temp HW breakpoint: <LOC>")
+def cmd_bht(args):
+    """
+    Set a temporary hardware breakpoint.
+    This breakpoint will be automatically deleted when hit!
+    LOCATION may be a line number, function name, or "*" and an address.
+    """
+    if not args: raise NeedHelp()
+    gdb_exec("thbreak " + args)
+
+
 # ===================================================================================
 
 print_sep("")
-print_info("Type ", STRESS_COLOR, "akhelp", RESET_COLOR, " to get our custom help!")
+print_info("Type ", STRESS_COLOR, "akhelp", RESET_COLOR, " or", INFO_COLOR, " press ", STRESS_COLOR, "F1", RESET_COLOR, " to get our custom help!")
+print_info("Type ", STRESS_COLOR, "apropos [subject]", RESET_COLOR, " to find some other command!")
+print_info("Press ", STRESS_COLOR, "<enter>", RESET_COLOR, " to repeat last command.")
 print_sep_end()

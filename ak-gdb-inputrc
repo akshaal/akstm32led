@@ -1,0 +1,3 @@
+$inlcude $HOME/.inputrc
+
+"\e[11~": "akhelp\r"
