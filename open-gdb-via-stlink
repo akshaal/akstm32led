@@ -9,7 +9,5 @@ D=`realpath "$D"`
 
 INPUTRC="$D/ak-gdb-inputrc"
 
-echo "source $HOME/.inputrc" > ak-gdb-inputrc-home
-
 export INPUTRC
 make && arm-none-eabi-gdb -x ak-gdb-script tmp-dbg/akstm32le-dbg.elf
