@@ -9,52 +9,6 @@ set remote hardware-watchpoint-limit 4
 source akgdb.py
 
 # =================================================================================
-define reload
-   printf "\n================== RELOADING ====================\n"
-   python
-import subprocess
-rc = subprocess.call(["make", "debug-only"])
-if rc == 0:
-   print("")
-   gdb.execute("monitor reset halt")
-   gdb.execute("load")
-   print("")
-   print("type 'continue' to run")
-   print("")
-end
-    printf "\n"
-end
-document reload
-
-Make, load.
-
-end
-
-# =================================================================================
-define restart
-   printf "\n================== RESTARTING ====================\n"
-   python
-import subprocess
-rc = subprocess.call(["make", "debug-only"])
-if rc == 0:
-   print("")
-   gdb.execute("monitor reset halt")
-   gdb.execute("load")
-   print("")
-   print("Press CTRL-C to stop")
-   gdb.execute("continue")
-   print("")
-end
-    printf "\n"
-end
-document restart
-
-Make, load, restart.
-
-end
-
-
-# =================================================================================
 define bpl
   info breakpoints
 end
