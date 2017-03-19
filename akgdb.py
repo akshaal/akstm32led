@@ -35,14 +35,23 @@ t_help = []
 b_help = []
 
 o_help = [
-    ("continue", ""), ("thread", "switch thread: [n]"),
+    ("thread", "switch thread: [n]"),
     ("print", "evaluate: v, &v, sizeof(v), sizeof(double)"),
     ("ptype", "print type: v, &v, ..."),
     ("x", "dump memory: [addr]"),
-    ("x/8xb", "dump 8 bytes hex memory: [addr]")
+    ("x/8xb", "dump 8 bytes hex memory: [addr]"),
+    ("display", "auto-display: <expr>")
 ]
 
-v_help = [("step", "step into"), ("next", "step over")]
+v_help = [
+    ("continue", ""),
+    ("step", "step into"),
+    ("stepi", "step instruction into"),
+    ("next", "step over"),
+    ("nexti", "step instruction over"),
+    ("finish", "finish function"),
+    ("until", "run til next line or loc: [LOC]"),
+]
 
 try:
     TERM_COLUMNS = int (os.popen ('stty size 2>/dev/null', 'r').read ().split () [1])
