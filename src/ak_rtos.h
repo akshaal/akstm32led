@@ -6,6 +6,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
+#include <stdio.h>
 
 typedef TaskHandle_t ak_task_handle;
 typedef QueueHandle_t ak_queue_handle;
@@ -30,5 +31,11 @@ void *ak_malloc(size_t const size);
 void ak_free(void const * const pv);
 char *ak_strdup(char const * const s);
 char *ak_strndup(char const * const s, size_t const size);
+
+#ifdef AK_DBG
+#define ak_debug(...)  puts(__VA_ARGS__)
+#else
+#define ak_debug(...)
+#endif
 
 #endif

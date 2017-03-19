@@ -18,6 +18,8 @@ void ak_create_main_task() {
 
 __attribute__((noreturn))
 static void ak_main_task() {
+    ak_debug("Main task started!\n");
+
     help();
 
     for(;;) {
