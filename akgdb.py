@@ -1,4 +1,6 @@
 # GNU GPL blah blah blah (C) Akshaal, 2017 blah blah blah
+# Some code is borrowed from python-gdb-dashboard, credits, stuff and karma goes this way
+# +++ other gdbinits maybe
 
 from __future__ import print_function
 
@@ -21,7 +23,7 @@ from time import strptime, mktime
 print("\nLOADING AK-GDB...\n")
 
 PYGMENTS_STYLE="paraiso-dark"
-SRC_CTX = 6 # Number of lines to show by src command
+SRC_CTX = 4 # Number of lines to show by src command
 
 TERM = os.environ.get ('TERM')
 DEVNULL = open (os.devnull, 'w')
@@ -52,6 +54,18 @@ except:
 
 TERM_SEPLINE = "=" * TERM_COLUMNS
 
+
+F_CACHE = {}
+
+
+def format_address(address):
+    pointer_size = gdb.parse_and_eval('$pc').type.sizeof
+    return ('0x{{:0{}x}}').format(pointer_size * 2).format(address)
+
+def to_unsigned(value, size=8):
+    # values from GDB can be used transparently but are not suitable for
+    # being printed as unsigned integers, so a conversion is needed
+    return int(value.cast(gdb.Value(0).type)) % (2 ** (size * 8))
 
 def natural_sort(l, key = str):
     convert = lambda text: int(text) if text.isdigit() else text.lower()
@@ -124,6 +138,9 @@ def gdb_exec(cmd):
     print_debug(cmd)
     gdb.execute(cmd)
 
+def gdb_capture(cmd):
+    return gdb.execute(cmd, to_string = True)
+
 def call(cmd_args, **kw):
     print_debug("sh ", " ".join(cmd_args))
     return subprocess.call (cmd_args, **kw)
@@ -171,7 +188,9 @@ def ak_cmd(help_grp, desc, **extra):
             else:
                 title = name + " " + "(" + desc + ")"
 
-            print_sep_start(title)
+            if  "no_title" not in extra:
+                print_sep_start(title)
+
             try:
                 f(*args, **kwds)
             except NeedHelp:
@@ -233,12 +252,17 @@ def cmd_akhelp(args):
     l_show_grp(b_help)
     print()
     l_show_grp(o_help)
+    print()
+    print_info(INFO_COLOR, "Press ", STRESS_COLOR, "F1", RESET_COLOR, " to get our custom help!")
+    print_info(INFO_COLOR, "Press ", STRESS_COLOR, "F2", RESET_COLOR, " for dashboard.")
+
     print_sep_end()
 
 # - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
 @ak_cmd(g_help, "make, reset, load")
 def cmd_reload(args):
     if call(["make", "debug-only"]) == 0:
+        F_CACHE = {}
         gdb_exec("monitor reset halt")
         gdb_exec("load")
         print()
@@ -248,6 +272,7 @@ def cmd_reload(args):
 @ak_cmd(g_help, "make, reset, load, cont")
 def cmd_restart(args):
     if call(["make", "debug-only"]) == 0:
+        F_CACHE = {}
         gdb_exec("monitor reset halt")
         gdb_exec("load")
         print("")
@@ -273,7 +298,113 @@ def cmd_func(args):
 # - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
 @ak_cmd(t_help, "[frames count]", no_desc_in_title = True)
 def cmd_stack(args):
-    gdb_exec(("info stack " + args).strip())
+    limit = 3
+    if args: limit = int(args.strip())
+
+    def fetch_frame_info(frame, data, prefix):
+        lines = []
+        for elem in data or []:
+            name = elem.sym
+            value = str(elem.sym.value(frame))
+            lines.append('{} {} = {}'.format(prefix, STRESS_COLOR + str(name) + RESET_COLOR, value))
+        return lines
+
+    def get_pc_line(frame, style):
+        frame_pc = format_address(frame.pc())
+        info = 'from {}'.format(frame_pc)
+        if frame.name():
+            frame_name = style + frame.name() + RESET_COLOR
+            try:
+                # try to compute the offset relative to the current function
+                value = gdb.parse_and_eval(frame.name()).address
+
+                # it can be None even if it is part of the "stack" (C++)
+                if value:
+                    func_start = to_unsigned(value)
+                    offset = frame.pc() - func_start
+                    frame_name += '+' + style + str(offset) + RESET_COLOR
+            except gdb.error:
+                pass  # e.g., @plt
+
+            info += ' in {}'.format(frame_name)
+            sal = frame.find_sal()
+            if sal.symtab:
+                file_name = style + sal.symtab.filename + RESET_COLOR
+                file_line = style + str(sal.line) + RESET_COLOR
+                info += ' at {}:{}'.format(file_name, file_line)
+        return info
+
+    selected_index = 0
+    frame = gdb.newest_frame()
+
+    while frame:
+        if frame == gdb.selected_frame():
+            break
+
+        frame = frame.older()
+        selected_index += 1
+
+    # format up to "limit" frames
+    frames = []
+    number = selected_index
+    more = False
+
+    while frame:
+        # the first is the selected one
+        selected = len(frames) == 0
+
+        # fetch frame info
+        style = DEBUG_COLOR if selected else INFO_COLOR
+
+        frame_id = style + str(number) + RESET_COLOR
+
+        info = get_pc_line(frame, style)
+
+        frame_lines = []
+        frame_lines.append('[{}] {}'.format(frame_id, info))
+
+        # fetch frame arguments and locals
+        decorator = gdb.FrameDecorator.FrameDecorator(frame)
+        frame_args = decorator.frame_args()
+        args_lines = fetch_frame_info(frame, frame_args, 'arg')
+        if args_lines:
+            frame_lines.extend(args_lines)
+        else:
+            frame_lines.append(UNIMP_COLOR + '(no arguments)' + RESET_COLOR)
+
+        frame_locals = decorator.frame_locals()
+        locals_lines = fetch_frame_info(frame, frame_locals, 'loc')
+        if locals_lines:
+            frame_lines.extend(locals_lines)
+        else:
+            frame_lines.append(UNIMP_COLOR + '(no locals)' + RESET_COLOR)
+
+        # add frame
+        frames.append(frame_lines)
+
+        # next
+        frame = frame.older()
+        number += 1
+
+        # check finished according to the limit
+        if limit and len(frames) == limit:
+            # more frames to show but limited
+            if frame:
+                more = True
+            break
+
+    # format the output
+    lines = []
+    for frame_lines in frames:
+        lines.extend(frame_lines)
+        lines.append("")
+
+    # add the placeholder
+    if more:
+        lines.append('[{}]'.format(INFO_COLOR + '+' + RESET_COLOR))
+
+    for line in lines:
+        print(line)
 
 # - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
 @ak_cmd(t_help, "frame, args, locals", no_desc_in_title = True)
@@ -369,7 +500,7 @@ def cmd_bht(args):
     gdb_exec("thbreak " + args)
 
 # - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
-@ak_cmd(o_help, "Display source: [lines]")
+@ak_cmd(o_help, "Source code: [lines]")
 def cmd_src(args):
     sal = gdb.selected_frame().find_sal()
     line_num = sal.line
@@ -381,9 +512,13 @@ def cmd_src(args):
 
     fname = sal.symtab.fullname()
 
-    highlighter = Highlighter(fname)
-    with open(fname) as source_file:
-        lines = highlighter.process(source_file.read()).split('\n')
+    if fname in F_CACHE:
+        lines = F_CACHE[fname]
+    else:
+        highlighter = Highlighter(fname)
+        with open(fname) as source_file:
+            lines = highlighter.process(source_file.read()).split('\n')
+        F_CACHE[fname] = lines
 
     ctx = SRC_CTX
     if args: ctx = int(args.strip())
@@ -400,6 +535,83 @@ def cmd_src(args):
             line = UNIMP_COLOR + line
 
         print(line)
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(o_help, "Assembler: [lines]")
+def cmd_asm(args):
+    ctx = SRC_CTX
+    if args: ctx = int(args)
+
+    frame = gdb.selected_frame()
+    disassemble = frame.architecture().disassemble
+    try:
+        # Get function boundaries
+        output = gdb_capture('disassemble').split('\n')
+        start = int(re.split('[ :]', output[1][3:], 1)[0], 16)
+        end = int(re.split('[ :]', output[-3][3:], 1)[0], 16)
+        asm = disassemble(start, end_pc = end)
+
+        pc_index = next(index for index, instr in enumerate(asm) if instr['addr'] == frame.pc())
+        start = max(pc_index - ctx, 0)
+        end = pc_index + ctx + 1
+        asm = asm[start:end]
+
+        line_info = gdb.find_pc_line(frame.pc())
+        line_info = line_info if line_info.last else None
+    except (gdb.error, StopIteration):
+        # stripped file or some other crap
+        asm = disassemble(frame.pc(), count=2 * ctx + 1)
+
+    # Function stuff
+    func_start = None
+    if frame.name():
+        try:
+            value = gdb.parse_and_eval(frame.name()).address
+            func_start = to_unsigned(value)
+        except gdb.error:
+            pass # whatever
+
+    highlighter = Highlighter("dump.s")
+
+    max_length = max(instr['length'] for instr in asm)
+    inferior = gdb.selected_inferior()
+
+    for index, instr in enumerate(asm):
+        addr = instr['addr']
+        length = instr['length']
+        text = instr['asm']
+        addr_str = format_address(addr)
+
+        # fetch and format opcode
+        region = inferior.read_memory(addr, length)
+        opcodes = (' '.join('{:02x}'.format(ord(byte)) for byte in region))
+        opcodes += (max_length - len(region)) * 3 * ' ' + ' '
+
+        # compute the offset if available
+        if func_start:
+            max_offset = len(str(asm[-1]['addr'] - func_start))
+            offset = str(addr - func_start).ljust(max_offset)
+            func_info = '{}+{} '.format(frame.name(), offset)
+        else:
+            func_info = '? '
+
+        text = highlighter.process(text.replace("#", "$$$$").replace(";", "#")).replace("#", ";").replace("$$$$", "#")
+
+        if addr == frame.pc():
+            c = DEBUG_COLOR
+        elif line_info and line_info.pc <= addr < line_info.last:
+            c = INFO_COLOR
+        else:
+            c = UNIMP_COLOR
+
+        print(c + addr_str, opcodes.upper(), func_info[-14:], RESET_COLOR + text + RESET_COLOR)
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(o_help, "dashboard", no_title = True)
+def cmd_d(args):
+    cmd_stack("")
+    cmd_asm("")
+    cmd_src("")
 
 # ===================================================================================
 
