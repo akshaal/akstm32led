@@ -33,7 +33,16 @@ DEVNULL = open (os.devnull, 'w')
 g_help = []
 t_help = []
 b_help = []
-o_help = [("continue", ""), ("thread", "switch thread: [n]")]
+
+o_help = [
+    ("continue", ""), ("thread", "switch thread: [n]"),
+    ("print", "evaluate: v, &v, sizeof(v), sizeof(double)"),
+    ("ptype", "print type: v, &v, ..."),
+    ("x", "dump memory: [addr]"),
+    ("x/8xb", "dump 8 bytes hex memory: [addr]")
+]
+
+v_help = [("step", "step into"), ("next", "step over")]
 
 try:
     TERM_COLUMNS = int (os.popen ('stty size 2>/dev/null', 'r').read ().split () [1])
@@ -320,6 +329,8 @@ def cmd_akhelp(args):
     l_show_grp(b_help)
     print()
     l_show_grp(o_help)
+    print()
+    l_show_grp(v_help)
     print()
     print_info(INFO_COLOR, "Press ", STRESS_COLOR, "F1", RESET_COLOR, " to get our custom help!")
     print_info(INFO_COLOR, "Press ", STRESS_COLOR, "F2", RESET_COLOR, " for dashboard.")
