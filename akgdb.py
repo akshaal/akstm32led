@@ -11,11 +11,17 @@ import subprocess
 import math
 import re
 import locale
+import pygments
+import pygments.lexers
+import pygments.formatters
 
 from collections import defaultdict
 from time import strptime, mktime
 
 print("\nLOADING AK-GDB...\n")
+
+PYGMENTS_STYLE="paraiso-dark"
+SRC_CTX = 6 # Number of lines to show by src command
 
 TERM = os.environ.get ('TERM')
 DEVNULL = open (os.devnull, 'w')
@@ -33,10 +39,12 @@ try:
     DEBUG_COLOR = '\033[93m'
     GRAPH_COLOR = '\033[94m'
     STRESS_COLOR = '\033[95m'
+    UNIMP_COLOR = '\033[90m'
 except:
     TERM_COLUMNS = 80
     RESET_COLOR = ''
     ERROR_COLOR = ''
+    UNIMP_COLOR = ''
     INFO_COLOR = ''
     DEBUG_COLOR = ''
     GRAPH_COLOR = ''
@@ -136,6 +144,14 @@ class Struct:
 
 
 class NeedHelp(BaseException): pass
+
+class Highlighter():
+    def __init__(self, filename):
+        self.formatter = pygments.formatters.Terminal256Formatter(style = PYGMENTS_STYLE)
+        self.lexer = pygments.lexers.get_lexer_for_filename(filename)
+
+    def process(self, source):
+        return pygments.highlight(source, self.lexer, self.formatter).rstrip('\n')
 
 # - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
 class AkSimpleCmd(gdb.Command):
@@ -352,6 +368,38 @@ def cmd_bht(args):
     if not args: raise NeedHelp()
     gdb_exec("thbreak " + args)
 
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(o_help, "Display source: [lines]")
+def cmd_src(args):
+    sal = gdb.selected_frame().find_sal()
+    line_num = sal.line
+    if not line_num:
+        print_info("No line (", sal, ")")
+        return
+
+    print_info("Line: ", STRESS_COLOR, line_num, INFO_COLOR, "  File: ", sal.symtab.filename)
+
+    fname = sal.symtab.fullname()
+
+    highlighter = Highlighter(fname)
+    with open(fname) as source_file:
+        lines = highlighter.process(source_file.read()).split('\n')
+
+    ctx = SRC_CTX
+    if args: ctx = int(args.strip())
+
+    start = max(line_num - ctx - 1, 0)
+    end = min(line_num + ctx, len(lines))
+
+    number_format = '{{:>{}}}'.format(len(str(end)))
+    for number, line in enumerate(lines[start:end], start + 1):
+        line = number_format.format(number) + "  " + RESET_COLOR + line
+        if number == line_num:
+            line = DEBUG_COLOR + line
+        else:
+            line = UNIMP_COLOR + line
+
+        print(line)
 
 # ===================================================================================
 

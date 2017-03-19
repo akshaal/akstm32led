@@ -7,5 +7,11 @@ set remote hardware-breakpoint-limit 6
 set remote hardware-watchpoint-limit 4
 
 set pagination off
+set history save
+set confirm off
+set verbose off
+set print pretty on
+set print array off
+set print array-indexes on
 
 source akgdb.py
