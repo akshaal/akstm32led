@@ -33,7 +33,7 @@ DEVNULL = open (os.devnull, 'w')
 g_help = []
 t_help = []
 b_help = []
-o_help = [("continue", "")]
+o_help = [("continue", ""), ("thread", "switch thread: [n]")]
 
 try:
     TERM_COLUMNS = int (os.popen ('stty size 2>/dev/null', 'r').read ().split () [1])
