@@ -1,7 +1,7 @@
 # GNU GPL blah blah blah (C) Akshaal (Evgeny Chukreev), 2017 blah blah blah
 # Some code is borrowed from python-gdb-dashboard, credits, stuff and karma goes this way
 # +++ other gdbinits maybe
-# Some code is by Carl Allendorph
+# Some code is based upon code by Carl Allendorph
 
 from __future__ import print_function
 
@@ -498,6 +498,15 @@ def cmd_stack(args):
     more = False
 
     while frame:
+        sal = frame.find_sal()
+        if sal and sal.symtab:
+            fname = sal.symtab.fullname()
+            lines = get_cached_src_lines(fname)
+            line_num = sal.line
+            src_line = DEBUG_COLOR + "SRC: " + RESET_COLOR + lines[line_num-1] + RESET_COLOR
+        else:
+            src_line = UNIMP_COLOR  + "[no source]" + RESET_COLOR
+
         # the first is the selected one
         selected = len(frames) == 0
 
@@ -526,6 +535,8 @@ def cmd_stack(args):
             frame_lines.extend(locals_lines)
         else:
             frame_lines.append(UNIMP_COLOR + '(no locals)' + RESET_COLOR)
+
+        frame_lines.append(src_line)
 
         # add frame
         frames.append(frame_lines)
@@ -648,6 +659,17 @@ def cmd_bht(args):
     gdb_exec("thbreak " + args)
 
 # - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+def get_cached_src_lines(fname):
+    if fname in F_CACHE:
+        return F_CACHE[fname]
+    else:
+        highlighter = Highlighter(fname)
+        with open(fname) as source_file:
+            lines = highlighter.process(source_file.read()).split('\n')
+            F_CACHE[fname] = lines
+
+        return lines
+
 @ak_cmd(o_help, "Source code: [lines]")
 def cmd_src(args):
     sal = gdb.selected_frame().find_sal()
@@ -659,14 +681,7 @@ def cmd_src(args):
     print_info("Line: ", STRESS_COLOR, line_num, INFO_COLOR, "  File: ", sal.symtab.filename)
 
     fname = sal.symtab.fullname()
-
-    if fname in F_CACHE:
-        lines = F_CACHE[fname]
-    else:
-        highlighter = Highlighter(fname)
-        with open(fname) as source_file:
-            lines = highlighter.process(source_file.read()).split('\n')
-        F_CACHE[fname] = lines
+    lines = get_cached_src_lines(fname)
 
     ctx = SRC_CTX
     if args: ctx = int(args.strip())
