@@ -48,21 +48,20 @@ CFLAGS_DBG  = -g # Enable debug symbols in elf file
 CFLAGS_DBG += -Og # Optimize for debug
 CFLAGS_DBG += -DAK_USED_IN_DBG="__attribute__((used))" # Marks as used
 CFLAGS_DBG += -DAK_DBG="1" # Tell that it is debug mode
-CFLAGS_DBG += --specs=rdimon.specs # no complain about _exit and stuff
 
 CFLAGS_OPT  = -Os # Optimize for size
 CFLAGS_OPT += -flto # Enable link time optimization
 CFLAGS_OPT += -fwhole-program # Enable whole program optimization
 CFLAGS_OPT += -DAK_USED_IN_DBG="" # Not mark as used
-CFLAGS_OPT += --specs=nosys.specs # no complain about _exit and stuff
 
 # Linked flags
 LDFLAGS  = -Wl,-Map=tmp/$(TARGET).map # Write map file
 LDFLAGS += -T${LDFILE} # Link script
 LDFLAGS += -lc # Use standard C file
+LDFLAGS += --specs=nano.specs # no complain about _exit and stuff
+LDFLAGS += --specs=nosys.specs # no complain about _exit and stuff
 
 LDFLAGS_DBG  =
-LDFLAGS_DBG += -lrdimon
 
 LDFLAGS_OPT  = -Wl,--gc-sections # Remove unused sections (e.g. remove unused data and functions)
 LDFLAGS_OPT += -Wl,--relax # Perform optimizations in linker

@@ -85,7 +85,7 @@ def format_address(address):
     pointer_size = gdb.parse_and_eval('$pc').type.sizeof
     return ('0x{{:0{}x}}').format(pointer_size * 2).format(address)
 
-def to_unsigned(value, size=8):
+def to_unsigned(value, size):
     # values from GDB can be used transparently but are not suitable for
     # being printed as unsigned integers, so a conversion is needed
     return int(value.cast(gdb.Value(0).type)) % (2 ** (size * 8))
@@ -207,7 +207,7 @@ class FreeRtosListInspector:
             listObjPtr = gdb.Value(addrInt).cast(ListInspector.ListType.pointer())
             self._list = listObjPtr.dereference()
 
-    def get_elements(self, castTypeStr = None, startElem = 1):
+    def get_elements(self, castTypeStr, startElem):
         if self._list == None:
             raise ValueError("Invalid List Object - Possibly Failed to Initialize!")
 
@@ -393,9 +393,9 @@ def get_tasks():
             numb = task['uxTCBNumber']
             acc.append((numb, task, state))
 
-    blocked = FreeRtosListInspector("xSuspendedTaskList").get_elements("TCB_t")
-    delayed1 = FreeRtosListInspector("xDelayedTaskList1").get_elements("TCB_t")
-    delayed2 = FreeRtosListInspector("xDelayedTaskList2").get_elements("TCB_t")
+    blocked = FreeRtosListInspector("xSuspendedTaskList").get_elements("TCB_t", 1)
+    delayed1 = FreeRtosListInspector("xDelayedTaskList1").get_elements("TCB_t", 1)
+    delayed2 = FreeRtosListInspector("xDelayedTaskList2").get_elements("TCB_t", 1)
     ready = []
 
     pxReadyTasksListsSym, _ = gdb.lookup_symbol("pxReadyTasksLists")
@@ -418,7 +418,10 @@ def get_tasks():
 
 @ak_cmd(t_help, "", no_desc_in_title = True)
 def cmd_threads(args):
-    tasks = get_tasks()
+    try:
+        tasks = get_tasks()
+    except:
+        tasks = {}
 
     selected_thread = gdb.selected_thread()
     selected_frame = gdb.selected_frame()
@@ -475,7 +478,7 @@ def stack_get_pc_line(frame, style):
 
             # it can be None even if it is part of the "stack" (C++)
             if value:
-                func_start = to_unsigned(value)
+                func_start = to_unsigned(value, 8)
                 offset = frame.pc() - func_start
                 frame_name += '+' + style + str(offset) + RESET_COLOR
         except gdb.error:
@@ -750,7 +753,7 @@ def cmd_asm(args):
     if frame.name():
         try:
             value = gdb.parse_and_eval(frame.name()).address
-            func_start = to_unsigned(value)
+            func_start = to_unsigned(value, 8)
         except gdb.error:
             pass # whatever
 
@@ -860,10 +863,28 @@ def cmd_d(args):
     cmd_regs("")
     cmd_src("")
 
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(o_help, "enable FreeRTOS threads")
+def cmd_freertos(args):
+    gdb_exec("monitor $_TARGETNAME configure -rtos FreeRTOS")
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(o_help, "flash prod built")
+def cmd_write(args):
+    gdb_exec("make")
+    gdb_exec("monitor write")
+
+# - - - - - ---------------------------- --- - - - - - - - - - -  - - - - - -- - - - - - - - - - - - - - -
+@ak_cmd(o_help, "enable semihosting")
+def cmd_semihosting(args):
+    gdb_exec("monitor arm semihosting enable")
+
 # ===================================================================================
 
 print_sep("")
 print_info("Type ", STRESS_COLOR, "akhelp", RESET_COLOR, " or", INFO_COLOR, " press ", STRESS_COLOR, "F1", RESET_COLOR, " to get our custom help!")
 print_info("Type ", STRESS_COLOR, "apropos [subject]", RESET_COLOR, " to find some other command!")
+print_info("Type ", STRESS_COLOR, "freertos", RESET_COLOR, " to enable freeRTOS threads (if not enabled in openocd.cfg)")
+print_info("Type ", STRESS_COLOR, "semihosting", RESET_COLOR, " to enable semihosting (doesn't work well with FreeRTOS)...")
 print_info("Press ", STRESS_COLOR, "<enter>", RESET_COLOR, " to repeat last command.")
 print_sep_end()
